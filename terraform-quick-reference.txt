@@ -1,0 +1,331 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                   TERRAFORM TROUBLESHOOTING QUICK REFERENCE                  ║
+║                         Real-Time Production Guide                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─ FIRST RESPONSE (The Golden 30 Seconds) ──────────────────────────────────┐
+│                                                                             │
+│  1. terraform validate                       # Syntax errors?              │
+│  2. terraform state list                     # Resources in state?         │
+│  3. terraform plan 2>&1 | grep -i error      # What's the error?           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ SYMPTOM → COMMAND MATRIX ─────────────────────────────────────────────────┐
+│                                                                             │
+│  ❌ Init Fails:                                                             │
+│     → terraform init -upgrade                                              │
+│     → TF_LOG=DEBUG terraform init 2>&1 | tee debug.log                     │
+│     → curl -I https://registry.terraform.io                                │
+│                                                                             │
+│  🔒 State Locked:                                                           │
+│     → aws dynamodb scan --table-name terraform-locks                       │
+│     → terraform force-unlock <LOCK_ID>                                     │
+│     → ps aux | grep terraform                                              │
+│                                                                             │
+│  🔧 Module Issues:                                                          │
+│     → terraform get                                                        │
+│     → ls -la .terraform/modules/                                           │
+│     → cat .terraform/modules/modules.json                                  │
+│                                                                             │
+│  💥 State Corruption:                                                       │
+│     → terraform state pull | jq '.'                                        │
+│     → cat terraform.tfstate.backup | jq '.'                                │
+│     → aws s3api list-object-versions --bucket <state-bucket>               │
+│                                                                             │
+│  🌐 Provider Auth:                                                          │
+│     → aws sts get-caller-identity                                          │
+│     → echo $AWS_PROFILE                                                    │
+│     → aws configure list                                                   │
+│                                                                             │
+│  🔄 Dependency Cycles:                                                      │
+│     → terraform graph | dot -Tsvg > graph.svg                              │
+│     → terraform graph > graph.dot                                          │
+│                                                                             │
+│  📦 Resource Import:                                                        │
+│     → terraform import <resource_address> <resource_id>                    │
+│     → terraform state show <resource>                                      │
+│     → terraform plan -target=<resource>                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STATE FILE OPERATIONS ────────────────────────────────────────────────────┐
+│                                                                             │
+│  # List all resources                                                      │
+│  terraform state list                                                      │
+│                                                                             │
+│  # Show specific resource                                                  │
+│  terraform state show aws_instance.web                                     │
+│                                                                             │
+│  # Pull state (view as JSON)                                               │
+│  terraform state pull | jq '.'                                             │
+│                                                                             │
+│  # Move resource (rename without recreate)                                 │
+│  terraform state mv aws_instance.old aws_instance.new                      │
+│                                                                             │
+│  # Move to module                                                          │
+│  terraform state mv aws_instance.web module.web.aws_instance.this         │
+│                                                                             │
+│  # Remove from state (don't destroy)                                       │
+│  terraform state rm aws_instance.web                                       │
+│                                                                             │
+│  # Import existing resource                                                │
+│  terraform import aws_instance.web i-1234567890abcdef                      │
+│                                                                             │
+│  # Replace specific resource                                               │
+│  terraform apply -replace="aws_instance.web"                               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ DEBUG LOGGING ────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  # Enable debug logging                                                    │
+│  export TF_LOG=DEBUG                                                       │
+│  export TF_LOG_PATH=./terraform-debug.log                                  │
+│                                                                             │
+│  # Component-specific logging                                              │
+│  export TF_LOG_CORE=DEBUG                                                  │
+│  export TF_LOG_PROVIDER=DEBUG                                              │
+│                                                                             │
+│  # Disable logging                                                         │
+│  unset TF_LOG                                                              │
+│  unset TF_LOG_PATH                                                         │
+│                                                                             │
+│  # Analyze debug logs                                                      │
+│  grep -i "error\|fail" terraform-debug.log                                 │
+│  grep "aws_" terraform-debug.log                                           │
+│  grep "state" terraform-debug.log                                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ MODULE TROUBLESHOOTING ───────────────────────────────────────────────────┐
+│                                                                             │
+│  # Initialize and download modules                                         │
+│  terraform get -update                                                     │
+│                                                                             │
+│  # Check downloaded modules                                                │
+│  ls -la .terraform/modules/                                                │
+│  cat .terraform/modules/modules.json | jq                                  │
+│                                                                             │
+│  # Validate including modules                                              │
+│  terraform validate                                                        │
+│                                                                             │
+│  # Test module in console                                                  │
+│  terraform console                                                         │
+│  > module.vpc.vpc_id                                                       │
+│  > module.vpc.public_subnets                                               │
+│                                                                             │
+│  # Show module resources in state                                          │
+│  terraform state list | grep module.                                       │
+│                                                                             │
+│  # Show specific module resource                                           │
+│  terraform state show module.vpc.aws_vpc.this                              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ PLAN/APPLY TROUBLESHOOTING ───────────────────────────────────────────────┐
+│                                                                             │
+│  # Detailed plan output                                                    │
+│  terraform plan -out=plan.tfplan                                           │
+│  terraform show plan.tfplan                                                │
+│  terraform show -json plan.tfplan | jq                                     │
+│                                                                             │
+│  # Target specific resource                                                │
+│  terraform plan -target=aws_instance.web                                   │
+│  terraform apply -target=aws_instance.web                                  │
+│                                                                             │
+│  # Refresh state before plan                                               │
+│  terraform refresh                                                         │
+│  terraform plan -refresh-only                                              │
+│                                                                             │
+│  # Check for drift                                                         │
+│  terraform plan -detailed-exitcode                                         │
+│  # Exit codes: 0=no changes, 1=error, 2=changes detected                  │
+│                                                                             │
+│  # Parallel execution control                                              │
+│  terraform apply -parallelism=1    # One at a time                         │
+│  terraform apply -parallelism=10   # Default                               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ BACKEND CONFIGURATION ────────────────────────────────────────────────────┐
+│                                                                             │
+│  # Initialize with backend config                                          │
+│  terraform init \                                                          │
+│    -backend-config="bucket=my-bucket" \                                    │
+│    -backend-config="key=path/terraform.tfstate"                            │
+│                                                                             │
+│  # Reconfigure backend                                                     │
+│  terraform init -reconfigure                                               │
+│                                                                             │
+│  # Migrate state to new backend                                            │
+│  terraform init -migrate-state                                             │
+│                                                                             │
+│  # Check current backend                                                   │
+│  cat .terraform/terraform.tfstate | jq                                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ WORKSPACE MANAGEMENT ─────────────────────────────────────────────────────┐
+│                                                                             │
+│  # List workspaces                                                         │
+│  terraform workspace list                                                  │
+│                                                                             │
+│  # Show current workspace                                                  │
+│  terraform workspace show                                                  │
+│                                                                             │
+│  # Create workspace                                                        │
+│  terraform workspace new dev                                               │
+│                                                                             │
+│  # Switch workspace                                                        │
+│  terraform workspace select prod                                           │
+│                                                                             │
+│  # Delete workspace                                                        │
+│  terraform workspace delete dev                                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ CONSOLE DEBUGGING ────────────────────────────────────────────────────────┐
+│                                                                             │
+│  # Start interactive console                                               │
+│  terraform console                                                         │
+│                                                                             │
+│  # Test variable values                                                    │
+│  > var.region                                                              │
+│  > var.instance_type                                                       │
+│                                                                             │
+│  # Test expressions                                                        │
+│  > cidrsubnet("10.0.0.0/16", 8, 1)                                         │
+│  > lookup(var.tags, "Environment", "dev")                                  │
+│                                                                             │
+│  # Access resource attributes                                              │
+│  > aws_instance.web.private_ip                                             │
+│  > module.vpc.vpc_id                                                       │
+│                                                                             │
+│  # Test functions                                                          │
+│  > join(",", var.availability_zones)                                       │
+│  > [for s in var.subnets : s.cidr if s.public]                             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ COMMON ERROR PATTERNS ────────────────────────────────────────────────────┐
+│                                                                             │
+│  Error: Invalid resource type                                              │
+│    → Check provider configuration and version                              │
+│    → Verify resource type spelling                                         │
+│                                                                             │
+│  Error: Missing required argument                                          │
+│    → Check resource documentation                                          │
+│    → Look at terraform validate output                                     │
+│                                                                             │
+│  Error: Cycle detected in graph                                            │
+│    → Use terraform graph to visualize                                      │
+│    → Break circular dependencies with separate resources                   │
+│                                                                             │
+│  Error: Error acquiring the state lock                                     │
+│    → Check if another process running                                      │
+│    → Force unlock if stale: terraform force-unlock <ID>                    │
+│                                                                             │
+│  Error: Error loading state                                                │
+│    → Check state file integrity: terraform state pull | jq                 │
+│    → Restore from backup if corrupted                                      │
+│                                                                             │
+│  Error: NoCredentialProviders                                              │
+│    → Check AWS credentials: aws sts get-caller-identity                    │
+│    → Verify provider configuration                                         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ DRIFT DETECTION & REMEDIATION ────────────────────────────────────────────┐
+│                                                                             │
+│  # Detect drift                                                            │
+│  terraform plan -detailed-exitcode                                         │
+│  if [ $? -eq 2 ]; then echo "Drift detected!"; fi                          │
+│                                                                             │
+│  # Show what changed                                                       │
+│  terraform plan -no-color > drift-report.txt                               │
+│                                                                             │
+│  # Options to fix:                                                         │
+│  # 1. Revert to Terraform config                                           │
+│  terraform apply -auto-approve                                             │
+│                                                                             │
+│  # 2. Accept manual changes                                                │
+│  terraform refresh                                                         │
+│  # Then update .tf files to match                                          │
+│                                                                             │
+│  # 3. Import if removed from state                                         │
+│  terraform import <resource_type>.<name> <resource_id>                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ PRODUCTION INCIDENT RESPONSE ─────────────────────────────────────────────┐
+│                                                                             │
+│  Step 1: ASSESS                                                            │
+│    └─→ terraform plan -detailed-exitcode                                   │
+│                                                                             │
+│  Step 2: CHECK STATE                                                       │
+│    └─→ terraform state list                                                │
+│    └─→ terraform state pull | jq '.version'                                │
+│                                                                             │
+│  Step 3: VERIFY BACKEND                                                    │
+│    └─→ aws s3 ls s3://bucket/path/ (for S3)                                │
+│    └─→ Check lock table in DynamoDB                                        │
+│                                                                             │
+│  Step 4: CHECK CREDENTIALS                                                 │
+│    └─→ aws sts get-caller-identity                                         │
+│                                                                             │
+│  Step 5: ENABLE DEBUG                                                      │
+│    └─→ TF_LOG=DEBUG terraform <command>                                    │
+│                                                                             │
+│  Step 6: TARGETED FIX                                                      │
+│    └─→ terraform apply -target=<resource>                                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STATE RECOVERY CHECKLIST ─────────────────────────────────────────────────┐
+│                                                                             │
+│  □ Backup current state (even if corrupted)                                │
+│    cp terraform.tfstate terraform.tfstate.corrupted                        │
+│                                                                             │
+│  □ Try local backup                                                        │
+│    cp terraform.tfstate.backup terraform.tfstate                           │
+│                                                                             │
+│  □ Try remote backend version                                              │
+│    aws s3api list-object-versions --bucket <bucket>                        │
+│                                                                             │
+│  □ Validate restored state                                                 │
+│    terraform state pull | jq '.'                                           │
+│                                                                             │
+│  □ Refresh to sync                                                         │
+│    terraform refresh                                                       │
+│                                                                             │
+│  □ Import missing resources                                                │
+│    terraform import <address> <id>                                         │
+│                                                                             │
+│  □ Verify no changes                                                       │
+│    terraform plan                                                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ REMEMBER ─────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  1. Always validate first - catch syntax errors early                      │
+│  2. Check state health - most issues are state-related                     │
+│  3. Debug logging reveals all - use TF_LOG=DEBUG                           │
+│  4. State operations are non-destructive - safe to explore                 │
+│  5. Modules are separate - check .terraform/modules/                       │
+│  6. Backend is critical - protect state file with versioning               │
+│  7. Import carefully - match config exactly                                │
+│  8. Graph visualizes dependencies - use for cycles                         │
+│  9. Workspaces isolate state - use for environments                        │
+│  10. Plan before apply - always review changes                             │
+│                                                                             │
+│  "State is truth, plan is intention, apply is action"                      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  Pro Tip: Enable debug logging FIRST when troubleshooting. The debug logs   ║
+║  show exactly what Terraform is doing and where it fails. State corruption   ║
+║  is the most common production issue - always have versioned backups.        ║
+╚══════════════════════════════════════════════════════════════════════════════╝

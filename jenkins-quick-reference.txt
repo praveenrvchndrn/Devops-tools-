@@ -1,0 +1,395 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    JENKINS TROUBLESHOOTING QUICK REFERENCE                   ║
+║                         Real-Time Production Guide                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─ FIRST RESPONSE (The Golden 30 Seconds) ──────────────────────────────────┐
+│                                                                             │
+│  1. Check Console Output (in Jenkins UI)    # What failed?                │
+│  2. Check stage/step (Blue Ocean view)      # Where failed?               │
+│  3. sudo tail -50 /var/log/jenkins/jenkins.log  # System errors?          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ SYMPTOM → COMMAND MATRIX ─────────────────────────────────────────────────┐
+│                                                                             │
+│  ❌ Git Checkout Fails:                                                     │
+│     → sudo -u jenkins ssh -T git@github.com                                │
+│     → ls -la ~/.ssh/                                                       │
+│     → cat ~/.ssh/known_hosts | grep github                                 │
+│                                                                             │
+│  🔧 Tool Not Found:                                                         │
+│     → which docker / which mvn / which npm                                 │
+│     → echo $PATH                                                           │
+│     → Check Global Tool Configuration in Jenkins UI                        │
+│                                                                             │
+│  🔌 Plugin Issues:                                                          │
+│     → grep -i "plugin" /var/log/jenkins/jenkins.log | grep -i error       │
+│     → ls -la /var/lib/jenkins/plugins/*.disabled                           │
+│     → curl -s http://localhost:8080/pluginManager/api/json | jq           │
+│                                                                             │
+│  💾 Disk/Memory Full:                                                       │
+│     → df -h /var/lib/jenkins                                               │
+│     → du -sh /var/lib/jenkins/workspace/*                                  │
+│     → free -h                                                              │
+│     → ps aux | grep jenkins | grep Xmx                                     │
+│                                                                             │
+│  🔐 Credential Issues:                                                      │
+│     → Manage Jenkins → Manage Credentials                                  │
+│     → Check credential ID matches Jenkinsfile                              │
+│     → Test: withCredentials block with debug echo                          │
+│                                                                             │
+│  ⚠️ Syntax Errors:                                                          │
+│     → Use Pipeline Syntax Generator                                        │
+│     → java -jar jenkins-cli.jar declarative-linter < Jenkinsfile           │
+│     → curl -X POST -F "jenkinsfile=<Jenkinsfile" \                         │
+│         http://localhost:8080/pipeline-model-converter/validate            │
+│                                                                             │
+│  🌐 Agent Offline:                                                          │
+│     → Manage Jenkins → Manage Nodes → [Node] → Log                         │
+│     → ssh jenkins@agent-node                                               │
+│     → telnet agent-node 22                                                 │
+│                                                                             │
+│  🐳 Docker Issues:                                                          │
+│     → sudo -u jenkins docker ps                                            │
+│     → groups jenkins | grep docker                                         │
+│     → ls -la /var/run/docker.sock                                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ JENKINS SERVICE MANAGEMENT ───────────────────────────────────────────────┐
+│                                                                             │
+│  # Check service status                                                    │
+│  sudo systemctl status jenkins                                             │
+│  sudo service jenkins status                                               │
+│                                                                             │
+│  # Start/Stop/Restart                                                      │
+│  sudo systemctl start jenkins                                              │
+│  sudo systemctl stop jenkins                                               │
+│  sudo systemctl restart jenkins                                            │
+│                                                                             │
+│  # Check if running                                                        │
+│  curl -I http://localhost:8080                                             │
+│  ps aux | grep jenkins | grep -v grep                                      │
+│                                                                             │
+│  # View logs in real-time                                                  │
+│  sudo tail -f /var/log/jenkins/jenkins.log                                 │
+│  sudo journalctl -u jenkins -f                                             │
+│                                                                             │
+│  # Check Java process                                                      │
+│  jps -v                                                                    │
+│  ps aux | grep jenkins | grep java                                         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ LOG LOCATIONS ────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  System Logs:                                                              │
+│    /var/log/jenkins/jenkins.log                                            │
+│    systemctl or journalctl -u jenkins                                      │
+│                                                                             │
+│  Build Logs:                                                               │
+│    /var/lib/jenkins/jobs/<job>/builds/<number>/log                         │
+│    Access via Jenkins UI → Build → Console Output                          │
+│                                                                             │
+│  Plugin Logs:                                                              │
+│    Manage Jenkins → System Log                                             │
+│                                                                             │
+│  Agent Logs:                                                               │
+│    Manage Jenkins → Manage Nodes → [Node] → Log                            │
+│    /var/log/jenkins-agent/ (on agent node)                                 │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ PLUGIN MANAGEMENT ────────────────────────────────────────────────────────┐
+│                                                                             │
+│  # List installed plugins                                                  │
+│  java -jar jenkins-cli.jar -s http://localhost:8080/ list-plugins          │
+│  curl -s http://localhost:8080/pluginManager/api/json?depth=1 | jq        │
+│                                                                             │
+│  # Check plugin directory                                                  │
+│  ls -la /var/lib/jenkins/plugins/                                          │
+│                                                                             │
+│  # Check disabled plugins                                                  │
+│  ls -la /var/lib/jenkins/plugins/*.disabled                                │
+│                                                                             │
+│  # Disable problematic plugin (if Jenkins won't start)                     │
+│  cd /var/lib/jenkins/plugins/                                              │
+│  mv problem-plugin.jpi problem-plugin.jpi.disabled                         │
+│  sudo systemctl restart jenkins                                            │
+│                                                                             │
+│  # Check plugin manifest                                                   │
+│  unzip -p /var/lib/jenkins/plugins/git.jpi META-INF/MANIFEST.MF           │
+│                                                                             │
+│  # Update all plugins                                                      │
+│  # Via UI: Manage Jenkins → Manage Plugins → Updates → Select All         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ CREDENTIAL DEBUGGING ─────────────────────────────────────────────────────┐
+│                                                                             │
+│  # List all credentials (via Script Console)                               │
+│  import com.cloudbees.plugins.credentials.*                                │
+│  CredentialsProvider.lookupCredentials(                                    │
+│      StandardCredentials.class,                                            │
+│      Jenkins.instance, null, null                                          │
+│  ).each { println "ID: ${it.id}, Desc: ${it.description}" }                │
+│                                                                             │
+│  # Test credential in pipeline (safe debug)                                │
+│  withCredentials([string(credentialsId: 'api-key', variable: 'KEY')]) {    │
+│      sh 'echo "Credential loaded: ${KEY:0:4}..."'                          │
+│  }                                                                          │
+│                                                                             │
+│  # Verify credential file                                                  │
+│  sudo ls -la /var/lib/jenkins/credentials.xml                              │
+│  sudo ls -la /var/lib/jenkins/secrets/                                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ WORKSPACE MANAGEMENT ─────────────────────────────────────────────────────┐
+│                                                                             │
+│  # Find workspace location                                                 │
+│  echo /var/lib/jenkins/workspace/<job-name>                                │
+│                                                                             │
+│  # Check workspace size                                                    │
+│  du -sh /var/lib/jenkins/workspace/*                                       │
+│                                                                             │
+│  # Clean old workspaces                                                    │
+│  find /var/lib/jenkins/workspace -mtime +30 -type d -exec rm -rf {} \;    │
+│                                                                             │
+│  # Clean in pipeline                                                       │
+│  stage('Cleanup') {                                                        │
+│      steps { cleanWs() }                                                   │
+│  }                                                                          │
+│                                                                             │
+│  # Clean temp directories                                                  │
+│  find /var/lib/jenkins/workspace -name "*@tmp" -type d -exec rm -rf {} \; │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ NODE/AGENT TROUBLESHOOTING ───────────────────────────────────────────────┐
+│                                                                             │
+│  # Check node status in Jenkins UI                                         │
+│  Manage Jenkins → Manage Nodes and Clouds                                  │
+│                                                                             │
+│  # Test SSH connectivity from master                                       │
+│  ssh jenkins@agent-node                                                    │
+│  telnet agent-node 22                                                      │
+│                                                                             │
+│  # Check agent process on agent                                            │
+│  ps aux | grep java | grep agent                                           │
+│                                                                             │
+│  # Restart agent (from Jenkins UI)                                         │
+│  Manage Nodes → [Node] → Disconnect → Launch agent                         │
+│                                                                             │
+│  # Check agent logs                                                        │
+│  Manage Nodes → [Node] → Log                                               │
+│                                                                             │
+│  # Verify remote directory                                                 │
+│  ssh jenkins@agent-node 'ls -la /var/lib/jenkins-agent'                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ PIPELINE SYNTAX VALIDATION ───────────────────────────────────────────────┐
+│                                                                             │
+│  # Validate Jenkinsfile locally                                            │
+│  java -jar jenkins-cli.jar -s http://localhost:8080/ \                     │
+│    declarative-linter < Jenkinsfile                                        │
+│                                                                             │
+│  # Validate via API                                                        │
+│  curl -X POST -F "jenkinsfile=<Jenkinsfile" \                              │
+│    http://localhost:8080/pipeline-model-converter/validate                 │
+│                                                                             │
+│  # Use Pipeline Syntax Generator                                           │
+│  Job → Pipeline Syntax → Step: withCredentials (or any step)               │
+│                                                                             │
+│  # Use Replay feature for testing                                          │
+│  Build → Replay → Edit Jenkinsfile → Run                                   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ SCRIPT CONSOLE (ADVANCED DEBUG) ──────────────────────────────────────────┐
+│                                                                             │
+│  Access: Manage Jenkins → Script Console                                   │
+│                                                                             │
+│  # List running builds                                                     │
+│  Jenkins.instance.getAllItems(Job.class).each { job ->                     │
+│      job.builds.findAll { it.isBuilding() }.each { build ->                │
+│          println "${job.name} #${build.number}"                            │
+│      }                                                                      │
+│  }                                                                          │
+│                                                                             │
+│  # Stop stuck builds                                                       │
+│  Jenkins.instance.getAllItems(Job.class).each { job ->                     │
+│      job.builds.findAll { it.isBuilding() }.each { build ->                │
+│          build.executor?.interrupt()                                       │
+│      }                                                                      │
+│  }                                                                          │
+│                                                                             │
+│  # Check workspace contents                                                │
+│  def job = Jenkins.instance.getItemByFullName('my-job')                    │
+│  def build = job.lastBuild                                                 │
+│  build.workspace.list().each { println it.name }                           │
+│                                                                             │
+│  # Check plugin status                                                     │
+│  Jenkins.instance.pluginManager.plugins.findAll {                          │
+│      !it.enabled || it.hasUpdate()                                         │
+│  }.each { println "${it.shortName}: ${it.version}" }                       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ DISK SPACE CLEANUP ───────────────────────────────────────────────────────┐
+│                                                                             │
+│  # Check disk usage                                                        │
+│  df -h /var/lib/jenkins                                                    │
+│                                                                             │
+│  # Find largest directories                                                │
+│  du -sh /var/lib/jenkins/* | sort -rh | head -10                           │
+│                                                                             │
+│  # Clean old builds                                                        │
+│  find /var/lib/jenkins/jobs/*/builds -type d -mtime +30 -exec rm -rf {} \;│
+│                                                                             │
+│  # Clean workspaces                                                        │
+│  find /var/lib/jenkins/workspace -maxdepth 1 -mtime +30 -exec rm -rf {} \;│
+│                                                                             │
+│  # Clean Docker build cache (if using Docker)                              │
+│  docker system prune -af --volumes                                         │
+│                                                                             │
+│  # Configure build discarder in pipeline                                   │
+│  options {                                                                 │
+│      buildDiscarder(logRotator(                                            │
+│          daysToKeepStr: '30',                                              │
+│          numToKeepStr: '10'                                                │
+│      ))                                                                    │
+│  }                                                                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ MEMORY MANAGEMENT ────────────────────────────────────────────────────────┐
+│                                                                             │
+│  # Check current heap size                                                 │
+│  ps aux | grep jenkins | grep -oP '\-Xmx\S+'                               │
+│                                                                             │
+│  # Check memory usage                                                      │
+│  free -h                                                                   │
+│  jstat -gc $(pgrep -f jenkins) 1000 10                                     │
+│                                                                             │
+│  # Increase heap size                                                      │
+│  sudo vi /etc/default/jenkins                                              │
+│  # Add: JAVA_ARGS="-Xmx4096m -Xms2048m"                                    │
+│                                                                             │
+│  # For systemd                                                             │
+│  sudo vi /etc/systemd/system/jenkins.service                               │
+│  # Add: Environment="JAVA_OPTS=-Xmx4g -Xms2g"                              │
+│  sudo systemctl daemon-reload                                              │
+│  sudo systemctl restart jenkins                                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ COMMON ERROR PATTERNS ────────────────────────────────────────────────────┐
+│                                                                             │
+│  Permission denied (publickey)                                             │
+│    → Add SSH key to Jenkins: sudo -u jenkins ssh-keygen                    │
+│    → Add public key to Git provider                                        │
+│                                                                             │
+│  command not found (mvn, docker, npm)                                      │
+│    → Check Global Tool Configuration                                       │
+│    → Install tool on agent or use Docker agent                             │
+│                                                                             │
+│  Plugin failed to load                                                     │
+│    → Check Jenkins version compatibility                                   │
+│    → Check System Log for detailed error                                   │
+│    → Update dependencies or downgrade plugin                               │
+│                                                                             │
+│  No space left on device                                                   │
+│    → Clean old builds and workspaces                                       │
+│    → Configure build discarder                                             │
+│    → Add disk space                                                        │
+│                                                                             │
+│  Credentials not found                                                     │
+│    → Verify credential ID matches Jenkinsfile                              │
+│    → Check credential scope (System vs Global)                             │
+│    → Add credential in Manage Credentials                                  │
+│                                                                             │
+│  Agent went offline                                                        │
+│    → Check network connectivity                                            │
+│    → Restart agent service                                                 │
+│    → Check agent logs                                                      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ PIPELINE DEBUGGING BEST PRACTICES ────────────────────────────────────────┐
+│                                                                             │
+│  # Add timestamps to console output                                        │
+│  options { timestamps() }                                                  │
+│                                                                             │
+│  # Add debug stage                                                         │
+│  stage('Debug') {                                                          │
+│      steps {                                                               │
+│          sh 'env | sort'                                                   │
+│          sh 'pwd && ls -la'                                                │
+│          sh 'whoami && groups'                                             │
+│      }                                                                      │
+│  }                                                                          │
+│                                                                             │
+│  # Use try-catch for better error messages                                 │
+│  try {                                                                     │
+│      sh 'risky-command'                                                    │
+│  } catch (Exception e) {                                                   │
+│      error "Failed: ${e.message}"                                          │
+│  }                                                                          │
+│                                                                             │
+│  # Echo important variables                                                │
+│  echo "Build: ${BUILD_NUMBER}, Branch: ${BRANCH_NAME}"                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ PRODUCTION INCIDENT RESPONSE ─────────────────────────────────────────────┐
+│                                                                             │
+│  Step 1: IDENTIFY                                                          │
+│    └─→ Check Console Output in Jenkins UI                                  │
+│                                                                             │
+│  Step 2: ISOLATE                                                           │
+│    └─→ Which stage failed? (Use Blue Ocean)                                │
+│                                                                             │
+│  Step 3: CHECK LOGS                                                        │
+│    └─→ sudo tail -100 /var/log/jenkins/jenkins.log                         │
+│                                                                             │
+│  Step 4: VERIFY HEALTH                                                     │
+│    └─→ df -h /var/lib/jenkins                                              │
+│    └─→ free -h                                                             │
+│    └─→ Manage Jenkins → System Information                                 │
+│                                                                             │
+│  Step 5: CHECK NODES                                                       │
+│    └─→ Manage Jenkins → Manage Nodes                                       │
+│                                                                             │
+│  Step 6: TEST MANUALLY                                                     │
+│    └─→ Use Replay to test fixes without commit                             │
+│                                                                             │
+│  Step 7: VERIFY FIX                                                        │
+│    └─→ Re-run build and monitor Console Output                             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ REMEMBER ─────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  1. Console output first - 90% of issues visible there                     │
+│  2. Check node health - agent disconnections common                        │
+│  3. Validate Jenkinsfile - use linter before commit                        │
+│  4. Pin plugin versions - avoid surprise breakages                         │
+│  5. Never hardcode secrets - always use withCredentials                    │
+│  6. Clean workspaces regularly - prevent disk issues                       │
+│  7. Test with Replay - no commit needed for testing                        │
+│  8. Monitor disk/memory - resource exhaustion common                       │
+│  9. Use Blue Ocean - better visualization of failures                      │
+│  10. Script Console is powerful - use for advanced debugging               │
+│                                                                             │
+│  "The console output tells you exactly what went wrong"                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  Pro Tip: Jenkins errors are usually descriptive. Read the FULL console     ║
+║  output, not just the last line. The actual error is often 10-20 lines      ║
+║  above the "BUILD FAILED" message. Use Replay to test fixes instantly.      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
