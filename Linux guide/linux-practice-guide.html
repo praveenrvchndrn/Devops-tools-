@@ -1,0 +1,2403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps Practice Guide - Linux</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .progress-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            color: white;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .difficulty-section {
+            margin-bottom: 50px;
+        }
+
+        .difficulty-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #e2e8f0;
+        }
+
+        .difficulty-badge {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            font-weight: 700;
+            margin-right: 15px;
+        }
+
+        .difficulty-badge.easy {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .difficulty-badge.medium {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .difficulty-badge.hard {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .difficulty-title {
+            font-size: 1.8em;
+            color: #2d3748;
+        }
+
+        .exercise {
+            background: #f7fafc;
+            border-left: 4px solid #f093fb;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .exercise-title {
+            font-size: 1.4em;
+            color: #2d3748;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .exercise-number {
+            background: #f093fb;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-left: 15px;
+        }
+
+        .scenario {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .scenario h4 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .scenario p {
+            color: #718096;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .requirements {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+
+        .requirements h5 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .requirements ul {
+            list-style-position: inside;
+            color: #4a5568;
+            line-height: 1.8;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin: 5px 5px 5px 0;
+        }
+
+        .hint-section {
+            margin-top: 20px;
+        }
+
+        .hint-button {
+            background: #f093fb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .hint-button:hover {
+            background: #e082eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+        }
+
+        .hint-button.revealed {
+            background: #48bb78;
+        }
+
+        .hint-content {
+            background: #fff5f7;
+            border-left: 4px solid #f093fb;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 6px;
+            display: none;
+            line-height: 1.8;
+            color: #2d3748;
+        }
+
+        .hint-content.visible {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hint-content code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .hint-content strong {
+            color: #f093fb;
+        }
+
+        .checkbox-container {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-container label {
+            font-size: 1.1em;
+            color: #4a5568;
+            cursor: pointer;
+        }
+
+        .best-practices {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .best-practices h4 {
+            color: #22543d;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .best-practices ul {
+            list-style-position: inside;
+            color: #2f855a;
+            line-height: 2;
+        }
+
+        .best-practices li strong {
+            color: #22543d;
+        }
+
+        .pitfall {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .pitfall h4 {
+            color: #7c2d12;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .pitfall ul {
+            list-style-position: inside;
+            color: #9c4221;
+            line-height: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐧 Linux Practice Guide</h1>
+            <p>Master Linux system administration through real-world scenarios</p>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="linux-progress"></div>
+                </div>
+                <div class="progress-text" id="linux-progress-text">0 of 24 exercises completed</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- EASY SECTION -->
+            <div class="difficulty-section">
+                <div class="difficulty-header">
+                    <span class="difficulty-badge easy">EASY</span>
+                    <h2 class="difficulty-title">Fundamentals & Basic Operations</h2>
+                </div>
+
+                <!-- Exercise 1 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">User Management for New Team Members</h3>
+                        <div class="exercise-number">1</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Your company just hired 5 new developers. You need to create user accounts, set up their home directories, assign them to the "developers" group, and ensure they change their password on first login.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Create users: alice, bob, charlie, diana, eve</li>
+                                <li>All users must belong to "developers" group</li>
+                                <li>Home directories: /home/username</li>
+                                <li>Force password change on first login</li>
+                                <li>Set password expiry to 90 days</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">useradd</span>
+                            <span class="tag">usermod</span>
+                            <span class="tag">passwd</span>
+                            <span class="tag">chage</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('easy-1-hint-1', this)">💡 Hint 1: Creating Group</button>
+                        <div id="easy-1-hint-1" class="hint-content">
+                            <strong>Group Creation:</strong><br>
+                            First create the developers group: <code>sudo groupadd developers</code><br>
+                            Verify it was created: <code>getent group developers</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-1-hint-2', this)">💡 Hint 2: Creating Users</button>
+                        <div id="easy-1-hint-2" class="hint-content">
+                            <strong>User Creation Command:</strong><br>
+                            Create user with specific group: <code>sudo useradd -m -g developers -s /bin/bash alice</code><br>
+                            • <code>-m</code>: Create home directory<br>
+                            • <code>-g developers</code>: Primary group<br>
+                            • <code>-s /bin/bash</code>: Default shell<br>
+                            Repeat for all users or use a for loop
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-1-hint-3', this)">💡 Hint 3: Password Setup</button>
+                        <div id="easy-1-hint-3" class="hint-content">
+                            <strong>Password Configuration:</strong><br>
+                            Set initial password: <code>sudo passwd alice</code><br>
+                            Force change on first login: <code>sudo chage -d 0 alice</code><br>
+                            Set 90-day expiry: <code>sudo chage -M 90 alice</code><br>
+                            View password status: <code>sudo chage -l alice</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-1-hint-4', this)">💡 Hint 4: Bulk Creation</button>
+                        <div id="easy-1-hint-4" class="hint-content">
+                            <strong>Script for Multiple Users:</strong><br>
+                            <code>for user in alice bob charlie diana eve; do<br>
+                            &nbsp;&nbsp;sudo useradd -m -g developers -s /bin/bash $user<br>
+                            &nbsp;&nbsp;echo "password123" | sudo passwd --stdin $user<br>
+                            &nbsp;&nbsp;sudo chage -d 0 -M 90 $user<br>
+                            done</code><br>
+                            Verify: <code>getent passwd | grep -E "alice|bob|charlie|diana|eve"</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-easy-1" onchange="updateProgress('linux')">
+                        <label for="linux-easy-1">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 2 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">File Permission Fix for Web Server</h3>
+                        <div class="exercise-number">2</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Your web application in /var/www/myapp is having permission issues. The web server (running as user "www-data") can't read static files, and developers can't upload new files. Fix the permissions properly.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Web server must read all files (directories and contents)</li>
+                                <li>Developers group must read, write, and execute</li>
+                                <li>New files should inherit proper permissions (setgid)</li>
+                                <li>Prevent others from accessing</li>
+                                <li>Logs directory should be writable only by www-data</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">chmod</span>
+                            <span class="tag">chown</span>
+                            <span class="tag">setgid</span>
+                            <span class="tag">permissions</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('easy-2-hint-1', this)">💡 Hint 1: Ownership Setup</button>
+                        <div id="easy-2-hint-1" class="hint-content">
+                            <strong>Set Ownership:</strong><br>
+                            Change owner and group: <code>sudo chown -R www-data:developers /var/www/myapp</code><br>
+                            • <code>-R</code>: Recursive (all files and subdirectories)<br>
+                            • <code>www-data</code>: Owner (web server user)<br>
+                            • <code>developers</code>: Group<br>
+                            Verify: <code>ls -la /var/www/myapp</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-2-hint-2', this)">💡 Hint 2: Directory Permissions</button>
+                        <div id="easy-2-hint-2" class="hint-content">
+                            <strong>Directory Permissions:</strong><br>
+                            Set directories to 2775: <code>sudo find /var/www/myapp -type d -exec chmod 2775 {} \;</code><br>
+                            • <code>2</code>: setgid bit (inherit group)<br>
+                            • <code>7</code>: Owner (rwx)<br>
+                            • <code>7</code>: Group (rwx)<br>
+                            • <code>5</code>: Others (r-x, read only)
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-2-hint-3', this)">💡 Hint 3: File Permissions</button>
+                        <div id="easy-2-hint-3" class="hint-content">
+                            <strong>File Permissions:</strong><br>
+                            Set files to 664: <code>sudo find /var/www/myapp -type f -exec chmod 664 {} \;</code><br>
+                            • <code>6</code>: Owner (rw-)<br>
+                            • <code>6</code>: Group (rw-)<br>
+                            • <code>4</code>: Others (r--)<br>
+                            This allows web server to read, developers to write
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-2-hint-4', this)">💡 Hint 4: Special Logs Directory</button>
+                        <div id="easy-2-hint-4" class="hint-content">
+                            <strong>Logs Directory Restriction:</strong><br>
+                            <code>sudo chown www-data:www-data /var/www/myapp/logs</code><br>
+                            <code>sudo chmod 700 /var/www/myapp/logs</code><br>
+                            This ensures only www-data can write logs, developers can't access<br>
+                            Test with: <code>sudo -u www-data touch /var/www/myapp/logs/test.log</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-easy-2" onchange="updateProgress('linux')">
+                        <label for="linux-easy-2">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 3 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Disk Space Cleanup Investigation</h3>
+                        <div class="exercise-number">3</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Your production server is running out of disk space (90% full). You need to find what's consuming space, identify old log files, and clean up safely without disrupting services.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Find top 10 largest directories</li>
+                                <li>Identify log files older than 30 days</li>
+                                <li>Find files larger than 100MB</li>
+                                <li>Compress old logs instead of deleting</li>
+                                <li>Clean up /tmp and /var/tmp safely</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">du</span>
+                            <span class="tag">df</span>
+                            <span class="tag">find</span>
+                            <span class="tag">gzip</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('easy-3-hint-1', this)">💡 Hint 1: Check Current Usage</button>
+                        <div id="easy-3-hint-1" class="hint-content">
+                            <strong>Disk Usage Analysis:</strong><br>
+                            Check filesystem usage: <code>df -h</code><br>
+                            Check directory sizes: <code>sudo du -h --max-depth=1 / | sort -hr | head -10</code><br>
+                            Check specific directory: <code>sudo du -sh /var/*</code><br>
+                            Identify large directories: <code>sudo du -ah /var | sort -rh | head -20</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-3-hint-2', this)">💡 Hint 2: Find Large Files</button>
+                        <div id="easy-3-hint-2" class="hint-content">
+                            <strong>Locate Large Files:</strong><br>
+                            Files larger than 100MB: <code>sudo find / -type f -size +100M -exec ls -lh {} \;</code><br>
+                            Sort by size: <code>sudo find / -type f -size +100M -exec ls -lh {} \; | awk '{print $5, $9}' | sort -rh</code><br>
+                            Exclude mounted drives: <code>sudo find / -xdev -type f -size +100M</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-3-hint-3', this)">💡 Hint 3: Old Log Files</button>
+                        <div id="easy-3-hint-3" class="hint-content">
+                            <strong>Find and Compress Logs:</strong><br>
+                            Find logs older than 30 days: <code>sudo find /var/log -type f -name "*.log" -mtime +30</code><br>
+                            Compress them: <code>sudo find /var/log -type f -name "*.log" -mtime +30 -exec gzip {} \;</code><br>
+                            Verify compression: <code>ls -lh /var/log/*.gz</code><br>
+                            Delete compressed logs older than 90 days: <code>sudo find /var/log -name "*.gz" -mtime +90 -delete</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-3-hint-4', this)">💡 Hint 4: Clean Temp Directories</button>
+                        <div id="easy-3-hint-4" class="hint-content">
+                            <strong>Safe Temp Cleanup:</strong><br>
+                            Check /tmp usage: <code>du -sh /tmp</code><br>
+                            Files older than 7 days: <code>sudo find /tmp -type f -mtime +7 -delete</code><br>
+                            Empty directories: <code>sudo find /tmp -type d -empty -delete</code><br>
+                            Similar for /var/tmp: <code>sudo find /var/tmp -type f -mtime +7 -delete</code><br>
+                            NOTE: Don't delete files less than 24 hours old (may be in use)
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-easy-3" onchange="updateProgress('linux')">
+                        <label for="linux-easy-3">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 4 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Process Management for High CPU Usage</h3>
+                        <div class="exercise-number">4</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>The server CPU is at 95% usage. You need to identify which process is causing it, check its details, and manage it appropriately without killing critical services.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Identify top CPU-consuming processes</li>
+                                <li>Check process details and command line</li>
+                                <li>Find process tree and parent-child relationships</li>
+                                <li>Lower priority for non-critical processes</li>
+                                <li>Kill only if necessary (gracefully first)</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">top</span>
+                            <span class="tag">ps</span>
+                            <span class="tag">nice</span>
+                            <span class="tag">kill</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('easy-4-hint-1', this)">💡 Hint 1: Monitor CPU Usage</button>
+                        <div id="easy-4-hint-1" class="hint-content">
+                            <strong>Real-time Monitoring:</strong><br>
+                            Interactive monitoring: <code>top</code> (press 'P' to sort by CPU)<br>
+                            Better alternative: <code>htop</code> (more user-friendly)<br>
+                            One-time snapshot: <code>ps aux --sort=-%cpu | head -10</code><br>
+                            Watch specific user: <code>top -u www-data</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-4-hint-2', this)">💡 Hint 2: Process Details</button>
+                        <div id="easy-4-hint-2" class="hint-content">
+                            <strong>Get Process Information:</strong><br>
+                            Full command line: <code>ps aux | grep [process-name]</code><br>
+                            Process tree: <code>pstree -p [PID]</code><br>
+                            Detailed info: <code>ps -f -p [PID]</code><br>
+                            Process files: <code>ls -l /proc/[PID]</code><br>
+                            Check open files: <code>lsof -p [PID]</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-4-hint-3', this)">💡 Hint 3: Adjust Priority</button>
+                        <div id="easy-4-hint-3" class="hint-content">
+                            <strong>Nice and Renice:</strong><br>
+                            Current priority: <code>ps -o pid,ni,comm -p [PID]</code><br>
+                            Lower priority (make nicer): <code>sudo renice +10 -p [PID]</code><br>
+                            Higher priority: <code>sudo renice -10 -p [PID]</code><br>
+                            • Nice values: -20 (highest priority) to +19 (lowest)<br>
+                            • Default is 0
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-4-hint-4', this)">💡 Hint 4: Terminate Process</button>
+                        <div id="easy-4-hint-4" class="hint-content">
+                            <strong>Graceful Termination:</strong><br>
+                            Try graceful shutdown first: <code>kill -15 [PID]</code> (SIGTERM)<br>
+                            Wait 10 seconds, then check if still running<br>
+                            Force kill if needed: <code>kill -9 [PID]</code> (SIGKILL)<br>
+                            Kill by name: <code>pkill -15 process-name</code><br>
+                            Kill all instances: <code>killall process-name</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-easy-4" onchange="updateProgress('linux')">
+                        <label for="linux-easy-4">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 5 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Cron Job Setup for Automated Backups</h3>
+                        <div class="exercise-number">5</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Set up automated daily backups of your application database. Backups should run at 2 AM, compress the output, and send email notifications on failure.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Daily backup at 2:00 AM</li>
+                                <li>Backup location: /backup/db/</li>
+                                <li>Filename format: db_backup_YYYY-MM-DD.sql.gz</li>
+                                <li>Keep only last 7 days of backups</li>
+                                <li>Email notification on errors</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">crontab</span>
+                            <span class="tag">mysqldump</span>
+                            <span class="tag">gzip</span>
+                            <span class="tag">automation</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('easy-5-hint-1', this)">💡 Hint 1: Create Backup Script</button>
+                        <div id="easy-5-hint-1" class="hint-content">
+                            <strong>Backup Script:</strong><br>
+                            Create /usr/local/bin/db-backup.sh:<br>
+                            <code>#!/bin/bash<br>
+                            DATE=$(date +%Y-%m-%d)<br>
+                            BACKUP_DIR="/backup/db"<br>
+                            mysqldump -u root -p'password' dbname | gzip > $BACKUP_DIR/db_backup_$DATE.sql.gz<br>
+                            find $BACKUP_DIR -name "*.gz" -mtime +7 -delete</code><br>
+                            Make executable: <code>chmod +x /usr/local/bin/db-backup.sh</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-5-hint-2', this)">💡 Hint 2: Crontab Syntax</button>
+                        <div id="easy-5-hint-2" class="hint-content">
+                            <strong>Understanding Cron:</strong><br>
+                            Format: <code>minute hour day month weekday command</code><br>
+                            Daily at 2 AM: <code>0 2 * * *</code><br>
+                            • <code>0</code> = minute (0-59)<br>
+                            • <code>2</code> = hour (0-23)<br>
+                            • <code>*</code> = any day, month, weekday<br>
+                            Edit crontab: <code>crontab -e</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-5-hint-3', this)">💡 Hint 3: Add Cron Entry</button>
+                        <div id="easy-5-hint-3" class="hint-content">
+                            <strong>Crontab Entry:</strong><br>
+                            Edit root crontab: <code>sudo crontab -e</code><br>
+                            Add line: <code>0 2 * * * /usr/local/bin/db-backup.sh >> /var/log/db-backup.log 2>&1</code><br>
+                            • Redirects output to log file<br>
+                            • <code>2>&1</code> captures errors too<br>
+                            List current jobs: <code>crontab -l</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-5-hint-4', this)">💡 Hint 4: Email Notifications</button>
+                        <div id="easy-5-hint-4" class="hint-content">
+                            <strong>Error Notification:</strong><br>
+                            Add to script top: <code>MAILTO="admin@company.com"</code><br>
+                            Or in crontab before the job: <code>MAILTO=admin@company.com</code><br>
+                            Test manually: <code>sudo /usr/local/bin/db-backup.sh</code><br>
+                            Check logs: <code>tail -f /var/log/db-backup.log</code><br>
+                            Cron log: <code>grep CRON /var/log/syslog</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-easy-5" onchange="updateProgress('linux')">
+                        <label for="linux-easy-5">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 6 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Network Connectivity Troubleshooting</h3>
+                        <div class="exercise-number">6</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Your application can't connect to the database server. Users report the website is slow. Diagnose network issues, check connectivity, and identify bottlenecks.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Test connectivity to database server (db.company.com:3306)</li>
+                                <li>Check DNS resolution</li>
+                                <li>Identify listening ports on local server</li>
+                                <li>Check firewall rules</li>
+                                <li>Monitor active connections</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">ping</span>
+                            <span class="tag">telnet</span>
+                            <span class="tag">netstat</span>
+                            <span class="tag">ss</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('easy-6-hint-1', this)">💡 Hint 1: Basic Connectivity</button>
+                        <div id="easy-6-hint-1" class="hint-content">
+                            <strong>Test Reachability:</strong><br>
+                            Ping server: <code>ping -c 4 db.company.com</code><br>
+                            Trace route: <code>traceroute db.company.com</code><br>
+                            DNS lookup: <code>nslookup db.company.com</code><br>
+                            Better DNS: <code>dig db.company.com</code><br>
+                            Check hosts file: <code>cat /etc/hosts</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-6-hint-2', this)">💡 Hint 2: Port Testing</button>
+                        <div id="easy-6-hint-2" class="hint-content">
+                            <strong>Test Specific Port:</strong><br>
+                            Telnet to port: <code>telnet db.company.com 3306</code><br>
+                            Better alternative: <code>nc -zv db.company.com 3306</code><br>
+                            • <code>-z</code>: Scan without sending data<br>
+                            • <code>-v</code>: Verbose output<br>
+                            Timeout test: <code>timeout 5 bash -c 'cat < /dev/null > /dev/tcp/db.company.com/3306'</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-6-hint-3', this)">💡 Hint 3: Check Local Ports</button>
+                        <div id="easy-6-hint-3" class="hint-content">
+                            <strong>Listening Services:</strong><br>
+                            All listening ports: <code>sudo netstat -tlnp</code><br>
+                            • <code>-t</code>: TCP<br>
+                            • <code>-l</code>: Listening<br>
+                            • <code>-n</code>: Numeric (no DNS)<br>
+                            • <code>-p</code>: Show process<br>
+                            Modern alternative: <code>sudo ss -tlnp</code><br>
+                            Specific port: <code>sudo lsof -i :80</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-6-hint-4', this)">💡 Hint 4: Firewall Check</button>
+                        <div id="easy-6-hint-4" class="hint-content">
+                            <strong>Firewall Rules:</strong><br>
+                            Check UFW status: <code>sudo ufw status</code><br>
+                            List iptables: <code>sudo iptables -L -n</code><br>
+                            Check specific port allowed: <code>sudo ufw status | grep 3306</code><br>
+                            Active connections: <code>sudo netstat -antp</code><br>
+                            Monitor in real-time: <code>watch -n 1 'netstat -an | grep :80'</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-easy-6" onchange="updateProgress('linux')">
+                        <label for="linux-easy-6">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 7 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">SSH Key-Based Authentication Setup</h3>
+                        <div class="exercise-number">7</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Set up passwordless SSH authentication for 3 remote servers. Disable password authentication for security and configure SSH to use keys only.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Generate SSH key pair (RSA 4096-bit)</li>
+                                <li>Copy public key to 3 servers</li>
+                                <li>Test passwordless login</li>
+                                <li>Disable password authentication on servers</li>
+                                <li>Set up SSH config for easy access</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">ssh-keygen</span>
+                            <span class="tag">ssh-copy-id</span>
+                            <span class="tag">authorized_keys</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('easy-7-hint-1', this)">💡 Hint 1: Generate Key Pair</button>
+                        <div id="easy-7-hint-1" class="hint-content">
+                            <strong>Create SSH Keys:</strong><br>
+                            Generate key: <code>ssh-keygen -t rsa -b 4096 -C "your_email@company.com"</code><br>
+                            • <code>-t rsa</code>: Use RSA algorithm<br>
+                            • <code>-b 4096</code>: 4096-bit key<br>
+                            • <code>-C</code>: Comment (usually your email)<br>
+                            Save location: <code>~/.ssh/id_rsa</code> (default)<br>
+                            Set passphrase for extra security
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-7-hint-2', this)">💡 Hint 2: Copy to Servers</button>
+                        <div id="easy-7-hint-2" class="hint-content">
+                            <strong>Deploy Public Key:</strong><br>
+                            Easy way: <code>ssh-copy-id user@server1.com</code><br>
+                            Manual way: <code>cat ~/.ssh/id_rsa.pub | ssh user@server1.com "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"</code><br>
+                            Set permissions: <code>chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys</code><br>
+                            Repeat for all 3 servers
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-7-hint-3', this)">💡 Hint 3: SSH Config File</button>
+                        <div id="easy-7-hint-3" class="hint-content">
+                            <strong>Simplify Access:</strong><br>
+                            Edit ~/.ssh/config:<br>
+                            <code>Host server1<br>
+                            &nbsp;&nbsp;HostName server1.company.com<br>
+                            &nbsp;&nbsp;User admin<br>
+                            &nbsp;&nbsp;IdentityFile ~/.ssh/id_rsa<br>
+                            &nbsp;&nbsp;Port 22</code><br>
+                            Now connect with just: <code>ssh server1</code><br>
+                            Add entries for all 3 servers
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-7-hint-4', this)">💡 Hint 4: Disable Password Auth</button>
+                        <div id="easy-7-hint-4" class="hint-content">
+                            <strong>Security Hardening:</strong><br>
+                            On each server, edit: <code>sudo nano /etc/ssh/sshd_config</code><br>
+                            Change these lines:<br>
+                            <code>PasswordAuthentication no<br>
+                            PubkeyAuthentication yes<br>
+                            PermitRootLogin no</code><br>
+                            Restart SSH: <code>sudo systemctl restart sshd</code><br>
+                            Test before logging out!
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-easy-7" onchange="updateProgress('linux')">
+                        <label for="linux-easy-7">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 8 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">System Resource Monitoring Setup</h3>
+                        <div class="exercise-number">8</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Set up basic monitoring to track CPU, memory, disk, and network usage. Create a simple dashboard using built-in Linux tools and log historical data.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Monitor CPU and memory every 5 minutes</li>
+                                <li>Log disk usage daily</li>
+                                <li>Track network bandwidth</li>
+                                <li>Set up alerts for > 80% disk usage</li>
+                                <li>Create weekly usage reports</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">vmstat</span>
+                            <span class="tag">iostat</span>
+                            <span class="tag">sar</span>
+                            <span class="tag">monitoring</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('easy-8-hint-1', this)">💡 Hint 1: CPU and Memory Monitoring</button>
+                        <div id="easy-8-hint-1" class="hint-content">
+                            <strong>System Statistics:</strong><br>
+                            Install sysstat: <code>sudo apt install sysstat</code><br>
+                            Enable data collection: <code>sudo systemctl enable sysstat</code><br>
+                            View current: <code>vmstat 5 3</code> (5 sec intervals, 3 times)<br>
+                            Historical data: <code>sar -u</code> (CPU) and <code>sar -r</code> (memory)<br>
+                            Memory details: <code>free -h</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-8-hint-2', this)">💡 Hint 2: Disk Monitoring</button>
+                        <div id="easy-8-hint-2" class="hint-content">
+                            <strong>Disk Usage Tracking:</strong><br>
+                            Create script /usr/local/bin/disk-monitor.sh:<br>
+                            <code>#!/bin/bash<br>
+                            df -h >> /var/log/disk-usage.log<br>
+                            echo "---" >> /var/log/disk-usage.log</code><br>
+                            Cron job: <code>0 0 * * * /usr/local/bin/disk-monitor.sh</code><br>
+                            I/O stats: <code>iostat -x 5</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-8-hint-3', this)">💡 Hint 3: Network Monitoring</button>
+                        <div id="easy-8-hint-3" class="hint-content">
+                            <strong>Network Statistics:</strong><br>
+                            Install tools: <code>sudo apt install iftop nethogs</code><br>
+                            Real-time bandwidth: <code>sudo iftop -i eth0</code><br>
+                            Per-process usage: <code>sudo nethogs</code><br>
+                            Network stats: <code>sar -n DEV 1 5</code><br>
+                            Interface stats: <code>ip -s link show eth0</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('easy-8-hint-4', this)">💡 Hint 4: Disk Usage Alerts</button>
+                        <div id="easy-8-hint-4" class="hint-content">
+                            <strong>Alert Script:</strong><br>
+                            Create /usr/local/bin/disk-alert.sh:<br>
+                            <code>#!/bin/bash<br>
+                            THRESHOLD=80<br>
+                            CURRENT=$(df -h / | awk 'NR==2 {print $5}' | sed 's/%//')<br>
+                            if [ $CURRENT -gt $THRESHOLD ]; then<br>
+                            &nbsp;&nbsp;echo "Disk usage is ${CURRENT}%" | mail -s "Disk Alert" admin@company.com<br>
+                            fi</code><br>
+                            Cron: <code>*/15 * * * * /usr/local/bin/disk-alert.sh</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-easy-8" onchange="updateProgress('linux')">
+                        <label for="linux-easy-8">Mark as completed</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MEDIUM SECTION -->
+            <div class="difficulty-section">
+                <div class="difficulty-header">
+                    <span class="difficulty-badge medium">MEDIUM</span>
+                    <h2 class="difficulty-title">System Administration & Performance</h2>
+                </div>
+
+                <!-- Exercise 9 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">LVM Setup for Dynamic Storage</h3>
+                        <div class="exercise-number">9</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Your database needs 500GB storage but you only have 200GB available. Set up LVM across multiple disks to create a flexible, expandable volume that can grow as needed.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Create LVM volume group from 3 disks (/dev/sdb, /dev/sdc, /dev/sdd)</li>
+                                <li>Create 200GB logical volume for database</li>
+                                <li>Format with ext4 and mount at /data/mysql</li>
+                                <li>Add to /etc/fstab for automatic mounting</li>
+                                <li>Plan for expansion when new disks arrive</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">lvm</span>
+                            <span class="tag">pvcreate</span>
+                            <span class="tag">vgcreate</span>
+                            <span class="tag">lvcreate</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('medium-9-hint-1', this)">💡 Hint 1: Physical Volumes</button>
+                        <div id="medium-9-hint-1" class="hint-content">
+                            <strong>Create Physical Volumes:</strong><br>
+                            Install LVM: <code>sudo apt install lvm2</code><br>
+                            Initialize disks: <code>sudo pvcreate /dev/sdb /dev/sdc /dev/sdd</code><br>
+                            Verify: <code>sudo pvdisplay</code> or <code>sudo pvs</code><br>
+                            Check disk status first: <code>lsblk</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-9-hint-2', this)">💡 Hint 2: Volume Group</button>
+                        <div id="medium-9-hint-2" class="hint-content">
+                            <strong>Create Volume Group:</strong><br>
+                            Create VG: <code>sudo vgcreate data_vg /dev/sdb /dev/sdc /dev/sdd</code><br>
+                            Verify: <code>sudo vgdisplay data_vg</code><br>
+                            Check available space: <code>sudo vgs</code><br>
+                            To extend later: <code>sudo vgextend data_vg /dev/sde</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-9-hint-3', this)">💡 Hint 3: Logical Volume</button>
+                        <div id="medium-9-hint-3" class="hint-content">
+                            <strong>Create and Format LV:</strong><br>
+                            Create 200GB LV: <code>sudo lvcreate -L 200G -n mysql_lv data_vg</code><br>
+                            Format: <code>sudo mkfs.ext4 /dev/data_vg/mysql_lv</code><br>
+                            Create mount point: <code>sudo mkdir -p /data/mysql</code><br>
+                            Mount: <code>sudo mount /dev/data_vg/mysql_lv /data/mysql</code><br>
+                            Verify: <code>df -h | grep mysql</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-9-hint-4', this)">💡 Hint 4: Permanent Mount</button>
+                        <div id="medium-9-hint-4" class="hint-content">
+                            <strong>Auto-mount Configuration:</strong><br>
+                            Get UUID: <code>sudo blkid /dev/data_vg/mysql_lv</code><br>
+                            Add to /etc/fstab:<br>
+                            <code>/dev/data_vg/mysql_lv /data/mysql ext4 defaults 0 2</code><br>
+                            Test: <code>sudo mount -a</code><br>
+                            To resize later: <code>sudo lvextend -L +100G /dev/data_vg/mysql_lv</code><br>
+                            Then: <code>sudo resize2fs /dev/data_vg/mysql_lv</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-medium-9" onchange="updateProgress('linux')">
+                        <label for="linux-medium-9">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 10 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Systemd Service Creation for Custom Application</h3>
+                        <div class="exercise-number">10</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Your Node.js application needs to run as a systemd service. It should start on boot, restart on failure, and run as a specific user with proper logging.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Create systemd service unit file</li>
+                                <li>Run as dedicated user "appuser"</li>
+                                <li>Auto-restart on failure (max 3 times)</li>
+                                <li>Start after network is available</li>
+                                <li>Log to journald with proper rotation</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">systemd</span>
+                            <span class="tag">systemctl</span>
+                            <span class="tag">journalctl</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('medium-10-hint-1', this)">💡 Hint 1: Create Service File</button>
+                        <div id="medium-10-hint-1" class="hint-content">
+                            <strong>Service Unit File:</strong><br>
+                            Create /etc/systemd/system/myapp.service:<br>
+                            <code>[Unit]<br>
+                            Description=My Node.js Application<br>
+                            After=network.target<br>
+                            <br>
+                            [Service]<br>
+                            Type=simple<br>
+                            User=appuser<br>
+                            WorkingDirectory=/opt/myapp<br>
+                            ExecStart=/usr/bin/node /opt/myapp/server.js<br>
+                            Restart=on-failure<br>
+                            RestartSec=10<br>
+                            StartLimitBurst=3<br>
+                            <br>
+                            [Install]<br>
+                            WantedBy=multi-user.target</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-10-hint-2', this)">💡 Hint 2: User Setup</button>
+                        <div id="medium-10-hint-2" class="hint-content">
+                            <strong>Dedicated Service User:</strong><br>
+                            Create system user: <code>sudo useradd -r -s /bin/false appuser</code><br>
+                            • <code>-r</code>: System account<br>
+                            • <code>-s /bin/false</code>: No shell login<br>
+                            Set ownership: <code>sudo chown -R appuser:appuser /opt/myapp</code><br>
+                            Verify: <code>id appuser</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-10-hint-3', this)">💡 Hint 3: Enable and Start</button>
+                        <div id="medium-10-hint-3" class="hint-content">
+                            <strong>Service Management:</strong><br>
+                            Reload daemon: <code>sudo systemctl daemon-reload</code><br>
+                            Start service: <code>sudo systemctl start myapp</code><br>
+                            Check status: <code>sudo systemctl status myapp</code><br>
+                            Enable on boot: <code>sudo systemctl enable myapp</code><br>
+                            View logs: <code>sudo journalctl -u myapp -f</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-10-hint-4', this)">💡 Hint 4: Environment Variables</button>
+                        <div id="medium-10-hint-4" class="hint-content">
+                            <strong>Environment Configuration:</strong><br>
+                            Add to service file:<br>
+                            <code>Environment="NODE_ENV=production"<br>
+                            Environment="PORT=3000"<br>
+                            EnvironmentFile=/etc/myapp/env</code><br>
+                            Or create /etc/myapp/env with KEY=VALUE pairs<br>
+                            Secure sensitive data: <code>sudo chmod 600 /etc/myapp/env</code><br>
+                            Test: <code>sudo systemctl restart myapp</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-medium-10" onchange="updateProgress('linux')">
+                        <label for="linux-medium-10">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 11 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Advanced Firewall Configuration with UFW</h3>
+                        <div class="exercise-number">11</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Secure your web server by configuring firewall rules. Allow HTTP/HTTPS from anywhere, SSH only from office IP, database port only from app servers, and block all other traffic.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Allow ports 80, 443 from anywhere</li>
+                                <li>SSH (port 22) only from 203.0.113.0/24</li>
+                                <li>MySQL (3306) only from 10.0.1.0/24</li>
+                                <li>Rate limit SSH to prevent brute force</li>
+                                <li>Log all denied connections</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">ufw</span>
+                            <span class="tag">iptables</span>
+                            <span class="tag">firewall</span>
+                            <span class="tag">security</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('medium-11-hint-1', this)">💡 Hint 1: Basic UFW Setup</button>
+                        <div id="medium-11-hint-1" class="hint-content">
+                            <strong>Initial Configuration:</strong><br>
+                            Install: <code>sudo apt install ufw</code><br>
+                            Set default policies: <code>sudo ufw default deny incoming</code><br>
+                            <code>sudo ufw default allow outgoing</code><br>
+                            Enable logging: <code>sudo ufw logging on</code><br>
+                            Check status: <code>sudo ufw status verbose</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-11-hint-2', this)">💡 Hint 2: Allow Web Traffic</button>
+                        <div id="medium-11-hint-2" class="hint-content">
+                            <strong>HTTP and HTTPS Rules:</strong><br>
+                            Allow HTTP: <code>sudo ufw allow 80/tcp</code><br>
+                            Allow HTTPS: <code>sudo ufw allow 443/tcp</code><br>
+                            Or use profiles: <code>sudo ufw allow 'Nginx Full'</code><br>
+                            Verify: <code>sudo ufw status numbered</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-11-hint-3', this)">💡 Hint 3: Restricted SSH Access</button>
+                        <div id="medium-11-hint-3" class="hint-content">
+                            <strong>SSH from Specific Network:</strong><br>
+                            Office network only: <code>sudo ufw allow from 203.0.113.0/24 to any port 22</code><br>
+                            Rate limiting: <code>sudo ufw limit ssh</code><br>
+                            This allows max 6 connections per 30 seconds<br>
+                            Database access: <code>sudo ufw allow from 10.0.1.0/24 to any port 3306</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-11-hint-4', this)">💡 Hint 4: Enable and Monitor</button>
+                        <div id="medium-11-hint-4" class="hint-content">
+                            <strong>Activation and Logging:</strong><br>
+                            Enable firewall: <code>sudo ufw enable</code><br>
+                            Check logs: <code>sudo tail -f /var/log/ufw.log</code><br>
+                            Show firewall status: <code>sudo ufw status numbered</code><br>
+                            Delete rule: <code>sudo ufw delete [number]</code><br>
+                            Reset all rules: <code>sudo ufw reset</code> (careful!)
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-medium-11" onchange="updateProgress('linux')">
+                        <label for="linux-medium-11">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 12 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Kernel Parameter Tuning for Performance</h3>
+                        <div class="exercise-number">12</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Your high-traffic web server is experiencing connection timeouts and slow response times. Tune kernel parameters to handle more connections, optimize network stack, and improve overall performance.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Increase max open files limit to 65535</li>
+                                <li>Optimize TCP settings for high connections</li>
+                                <li>Enable TCP Fast Open</li>
+                                <li>Adjust swappiness for better memory management</li>
+                                <li>Make changes persistent across reboots</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">sysctl</span>
+                            <span class="tag">limits.conf</span>
+                            <span class="tag">tuning</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('medium-12-hint-1', this)">💡 Hint 1: File Descriptor Limits</button>
+                        <div id="medium-12-hint-1" class="hint-content">
+                            <strong>Increase Open Files:</strong><br>
+                            Current limit: <code>ulimit -n</code><br>
+                            Edit /etc/security/limits.conf:<br>
+                            <code>* soft nofile 65535<br>
+                            * hard nofile 65535</code><br>
+                            System-wide: Edit /etc/sysctl.conf<br>
+                            <code>fs.file-max = 2097152</code><br>
+                            Apply: <code>sudo sysctl -p</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-12-hint-2', this)">💡 Hint 2: TCP Optimization</button>
+                        <div id="medium-12-hint-2" class="hint-content">
+                            <strong>Network Stack Tuning:</strong><br>
+                            Add to /etc/sysctl.conf:<br>
+                            <code>net.core.somaxconn = 65535<br>
+                            net.ipv4.tcp_max_syn_backlog = 8192<br>
+                            net.ipv4.tcp_tw_reuse = 1<br>
+                            net.ipv4.tcp_fin_timeout = 15<br>
+                            net.ipv4.ip_local_port_range = 1024 65535</code><br>
+                            Apply immediately: <code>sudo sysctl -p</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-12-hint-3', this)">💡 Hint 3: TCP Fast Open</button>
+                        <div id="medium-12-hint-3" class="hint-content">
+                            <strong>Enable TFO:</strong><br>
+                            Check current: <code>cat /proc/sys/net/ipv4/tcp_fastopen</code><br>
+                            Enable client and server: <code>echo 3 | sudo tee /proc/sys/net/ipv4/tcp_fastopen</code><br>
+                            Persistent in /etc/sysctl.conf:<br>
+                            <code>net.ipv4.tcp_fastopen = 3</code><br>
+                            • 1 = client, 2 = server, 3 = both
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-12-hint-4', this)">💡 Hint 4: Memory and Swap</button>
+                        <div id="medium-12-hint-4" class="hint-content">
+                            <strong>Swappiness Adjustment:</strong><br>
+                            Current value: <code>cat /proc/sys/vm/swappiness</code><br>
+                            Set to 10 (less aggressive): <code>sudo sysctl vm.swappiness=10</code><br>
+                            Permanent in /etc/sysctl.conf: <code>vm.swappiness = 10</code><br>
+                            View all settings: <code>sudo sysctl -a | grep -E 'tcp|file'</code><br>
+                            Verify after reboot: <code>cat /proc/sys/vm/swappiness</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-medium-12" onchange="updateProgress('linux')">
+                        <label for="linux-medium-12">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 13 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">RAID Configuration for Data Redundancy</h3>
+                        <div class="exercise-number">13</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Set up RAID 10 (mirrored stripes) using 4 disks for your critical database server. This provides both performance and redundancy, allowing up to 2 disk failures (from different mirrors).</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Create RAID 10 array from 4 disks (sdb, sdc, sdd, sde)</li>
+                                <li>Monitor array health and setup email alerts</li>
+                                <li>Simulate disk failure and replacement</li>
+                                <li>Auto-assemble array on boot</li>
+                                <li>Create filesystem and mount persistently</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">mdadm</span>
+                            <span class="tag">raid</span>
+                            <span class="tag">redundancy</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('medium-13-hint-1', this)">💡 Hint 1: Create RAID Array</button>
+                        <div id="medium-13-hint-1" class="hint-content">
+                            <strong>RAID 10 Setup:</strong><br>
+                            Install mdadm: <code>sudo apt install mdadm</code><br>
+                            Create array: <code>sudo mdadm --create /dev/md0 --level=10 --raid-devices=4 /dev/sdb /dev/sdc /dev/sdd /dev/sde</code><br>
+                            Monitor creation: <code>watch cat /proc/mdstat</code><br>
+                            Check details: <code>sudo mdadm --detail /dev/md0</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-13-hint-2', this)">💡 Hint 2: Save Configuration</button>
+                        <div id="medium-13-hint-2" class="hint-content">
+                            <strong>Persistent Configuration:</strong><br>
+                            Save config: <code>sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf</code><br>
+                            Update initramfs: <code>sudo update-initramfs -u</code><br>
+                            This ensures array assembles on boot<br>
+                            Verify config: <code>cat /etc/mdadm/mdadm.conf</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-13-hint-3', this)">💡 Hint 3: Format and Mount</button>
+                        <div id="medium-13-hint-3" class="hint-content">
+                            <strong>Filesystem Setup:</strong><br>
+                            Create filesystem: <code>sudo mkfs.ext4 /dev/md0</code><br>
+                            Create mount point: <code>sudo mkdir /data/raid</code><br>
+                            Mount: <code>sudo mount /dev/md0 /data/raid</code><br>
+                            Add to /etc/fstab: <code>/dev/md0 /data/raid ext4 defaults 0 2</code><br>
+                            Test: <code>sudo mount -a && df -h</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-13-hint-4', this)">💡 Hint 4: Monitoring and Failure</button>
+                        <div id="medium-13-hint-4" class="hint-content">
+                            <strong>Health Monitoring:</strong><br>
+                            Check status: <code>cat /proc/mdstat</code><br>
+                            Enable monitoring: Edit /etc/mdadm/mdadm.conf<br>
+                            <code>MAILADDR admin@company.com</code><br>
+                            Simulate failure: <code>sudo mdadm --manage /dev/md0 --fail /dev/sdb</code><br>
+                            Remove failed: <code>sudo mdadm --manage /dev/md0 --remove /dev/sdb</code><br>
+                            Add new disk: <code>sudo mdadm --manage /dev/md0 --add /dev/sdf</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-medium-13" onchange="updateProgress('linux')">
+                        <label for="linux-medium-13">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 14 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Log Rotation and Centralized Logging</h3>
+                        <div class="exercise-number">14</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Application logs are filling up disk space. Configure logrotate for automatic rotation, compression, and retention. Also set up rsyslog to send logs to a central logging server.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Rotate application logs daily</li>
+                                <li>Keep 14 days of compressed logs</li>
+                                <li>Email admin when rotation happens</li>
+                                <li>Send critical logs to remote syslog server</li>
+                                <li>Create custom log filters</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">logrotate</span>
+                            <span class="tag">rsyslog</span>
+                            <span class="tag">logging</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('medium-14-hint-1', this)">💡 Hint 1: Logrotate Configuration</button>
+                        <div id="medium-14-hint-1" class="hint-content">
+                            <strong>Create Rotation Config:</strong><br>
+                            Create /etc/logrotate.d/myapp:<br>
+                            <code>/var/log/myapp/*.log {<br>
+                            &nbsp;&nbsp;daily<br>
+                            &nbsp;&nbsp;rotate 14<br>
+                            &nbsp;&nbsp;compress<br>
+                            &nbsp;&nbsp;delaycompress<br>
+                            &nbsp;&nbsp;notifempty<br>
+                            &nbsp;&nbsp;create 0640 www-data www-data<br>
+                            &nbsp;&nbsp;sharedscripts<br>
+                            &nbsp;&nbsp;postrotate<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;systemctl reload myapp<br>
+                            &nbsp;&nbsp;endscript<br>
+                            }</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-14-hint-2', this)">💡 Hint 2: Test Rotation</button>
+                        <div id="medium-14-hint-2" class="hint-content">
+                            <strong>Verify Configuration:</strong><br>
+                            Test config: <code>sudo logrotate -d /etc/logrotate.d/myapp</code><br>
+                            Force rotation: <code>sudo logrotate -f /etc/logrotate.d/myapp</code><br>
+                            Check status: <code>cat /var/lib/logrotate/status</code><br>
+                            Verify rotated files: <code>ls -lh /var/log/myapp/</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-14-hint-3', this)">💡 Hint 3: Email Notifications</button>
+                        <div id="medium-14-hint-3" class="hint-content">
+                            <strong>Add Email Alerts:</strong><br>
+                            Add to logrotate config:<br>
+                            <code>mail admin@company.com<br>
+                            mailfirst</code><br>
+                            Install mail: <code>sudo apt install mailutils</code><br>
+                            Test email: <code>echo "test" | mail -s "Logrotate Test" admin@company.com</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-14-hint-4', this)">💡 Hint 4: Remote Syslog</button>
+                        <div id="medium-14-hint-4" class="hint-content">
+                            <strong>Centralized Logging:</strong><br>
+                            Edit /etc/rsyslog.conf:<br>
+                            <code>*.* @@logserver.company.com:514</code><br>
+                            • <code>@@</code> = TCP, <code>@</code> = UDP<br>
+                            For specific severity: <code>*.err @@logserver.company.com:514</code><br>
+                            Restart: <code>sudo systemctl restart rsyslog</code><br>
+                            Test: <code>logger -p user.err "Test error message"</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-medium-14" onchange="updateProgress('linux')">
+                        <label for="linux-medium-14">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 15 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Network Bonding for High Availability</h3>
+                        <div class="exercise-number">15</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Your production server needs network redundancy. Configure network bonding (NIC teaming) with two network interfaces for failover and increased throughput.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Bond two interfaces (eth0, eth1) in active-backup mode</li>
+                                <li>Set bond0 with static IP 192.168.1.100</li>
+                                <li>Configure automatic failover</li>
+                                <li>Test failover by disabling one interface</li>
+                                <li>Make configuration persistent</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">bonding</span>
+                            <span class="tag">netplan</span>
+                            <span class="tag">networking</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('medium-15-hint-1', this)">💡 Hint 1: Load Bonding Module</button>
+                        <div id="medium-15-hint-1" class="hint-content">
+                            <strong>Enable Bonding:</strong><br>
+                            Load module: <code>sudo modprobe bonding</code><br>
+                            Persistent load: Add to /etc/modules<br>
+                            <code>bonding</code><br>
+                            Verify: <code>lsmod | grep bonding</code><br>
+                            Check bonding modes: <code>cat /sys/class/net/bonding_masters</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-15-hint-2', this)">💡 Hint 2: Netplan Configuration</button>
+                        <div id="medium-15-hint-2" class="hint-content">
+                            <strong>Configure Bond (Ubuntu 18+):</strong><br>
+                            Edit /etc/netplan/01-netcfg.yaml:<br>
+                            <code>network:<br>
+                            &nbsp;&nbsp;version: 2<br>
+                            &nbsp;&nbsp;ethernets:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;eth0: {}<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;eth1: {}<br>
+                            &nbsp;&nbsp;bonds:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;bond0:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;interfaces: [eth0, eth1]<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;addresses: [192.168.1.100/24]<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gateway4: 192.168.1.1<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;parameters:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mode: active-backup<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mii-monitor-interval: 100</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-15-hint-3', this)">💡 Hint 3: Apply Configuration</button>
+                        <div id="medium-15-hint-3" class="hint-content">
+                            <strong>Activate Bond:</strong><br>
+                            Test config: <code>sudo netplan try</code><br>
+                            Apply config: <code>sudo netplan apply</code><br>
+                            Verify bond: <code>ip addr show bond0</code><br>
+                            Check bond status: <code>cat /proc/net/bonding/bond0</code><br>
+                            View active interface: Look for "Currently Active Slave"
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-15-hint-4', this)">💡 Hint 4: Test Failover</button>
+                        <div id="medium-15-hint-4" class="hint-content">
+                            <strong>Failover Testing:</strong><br>
+                            Check current active: <code>cat /proc/net/bonding/bond0 | grep "Currently Active"</code><br>
+                            Disable eth0: <code>sudo ip link set eth0 down</code><br>
+                            Verify failover: <code>cat /proc/net/bonding/bond0</code><br>
+                            Should show eth1 as active now<br>
+                            Re-enable: <code>sudo ip link set eth0 up</code><br>
+                            Monitor: <code>watch -n 1 cat /proc/net/bonding/bond0</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-medium-15" onchange="updateProgress('linux')">
+                        <label for="linux-medium-15">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 16 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Securing Linux with SELinux/AppArmor</h3>
+                        <div class="exercise-number">16</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Harden your web server using mandatory access controls. Configure AppArmor (or SELinux) to restrict what nginx can access, preventing privilege escalation even if compromised.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Enable AppArmor/SELinux in enforcing mode</li>
+                                <li>Create profile for nginx restricting file access</li>
+                                <li>Allow nginx to only read /var/www and /etc/nginx</li>
+                                <li>Test profile by attempting unauthorized access</li>
+                                <li>Monitor and audit security violations</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">apparmor</span>
+                            <span class="tag">selinux</span>
+                            <span class="tag">security</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('medium-16-hint-1', this)">💡 Hint 1: Check AppArmor Status</button>
+                        <div id="medium-16-hint-1" class="hint-content">
+                            <strong>AppArmor Basics:</strong><br>
+                            Check status: <code>sudo aa-status</code><br>
+                            Install utils: <code>sudo apt install apparmor-utils</code><br>
+                            List profiles: <code>sudo aa-status | grep profiles</code><br>
+                            View nginx profile: <code>cat /etc/apparmor.d/usr.sbin.nginx</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-16-hint-2', this)">💡 Hint 2: Create Custom Profile</button>
+                        <div id="medium-16-hint-2" class="hint-content">
+                            <strong>Profile Generation:</strong><br>
+                            Generate profile: <code>sudo aa-genprof nginx</code><br>
+                            In another terminal, use nginx normally<br>
+                            Press 'S' to scan logs and update profile<br>
+                            Or edit /etc/apparmor.d/usr.sbin.nginx manually:<br>
+                            <code>/var/www/** r,<br>
+                            /etc/nginx/** r,<br>
+                            deny /etc/shadow r,</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-16-hint-3', this)">💡 Hint 3: Enforce Profile</button>
+                        <div id="medium-16-hint-3" class="hint-content">
+                            <strong>Activate Protection:</strong><br>
+                            Set complain mode first: <code>sudo aa-complain nginx</code><br>
+                            Test application thoroughly<br>
+                            Enable enforce mode: <code>sudo aa-enforce nginx</code><br>
+                            Reload profile: <code>sudo apparmor_parser -r /etc/apparmor.d/usr.sbin.nginx</code><br>
+                            Check mode: <code>sudo aa-status | grep nginx</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('medium-16-hint-4', this)">💡 Hint 4: Monitor and Troubleshoot</button>
+                        <div id="medium-16-hint-4" class="hint-content">
+                            <strong>Audit Violations:</strong><br>
+                            View denials: <code>sudo dmesg | grep -i apparmor</code><br>
+                            System logs: <code>sudo grep -i apparmor /var/log/syslog</code><br>
+                            Audit logs: <code>sudo ausearch -m AVC -ts recent</code><br>
+                            Temporarily disable: <code>sudo aa-disable nginx</code><br>
+                            Update profile after testing: <code>sudo aa-logprof</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-medium-16" onchange="updateProgress('linux')">
+                        <label for="linux-medium-16">Mark as completed</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HARD SECTION -->
+            <div class="difficulty-section">
+                <div class="difficulty-header">
+                    <span class="difficulty-badge hard">HARD</span>
+                    <h2 class="difficulty-title">Advanced System Engineering</h2>
+                </div>
+
+                <!-- Exercise 17 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Kernel Compilation for Custom Requirements</h3>
+                        <div class="exercise-number">17</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Your IoT device needs a minimal, custom kernel with specific drivers and optimizations. Compile a lightweight kernel from source with only required modules for reduced boot time and memory footprint.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Download and compile latest stable kernel</li>
+                                <li>Remove unnecessary modules (reduce by 50%)</li>
+                                <li>Include specific drivers for hardware</li>
+                                <li>Optimize for low latency</li>
+                                <li>Install new kernel and configure bootloader</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">kernel</span>
+                            <span class="tag">compilation</span>
+                            <span class="tag">optimization</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('hard-17-hint-1', this)">💡 Hint 1: Download Kernel Source</button>
+                        <div id="hard-17-hint-1" class="hint-content">
+                            <strong>Get Kernel Source:</strong><br>
+                            Install dependencies: <code>sudo apt install build-essential libncurses-dev bison flex libssl-dev libelf-dev</code><br>
+                            Download kernel: <code>wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.tar.xz</code><br>
+                            Extract: <code>tar -xf linux-6.1.tar.xz && cd linux-6.1</code><br>
+                            Check current: <code>uname -r</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-17-hint-2', this)">💡 Hint 2: Configure Kernel</button>
+                        <div id="hard-17-hint-2" class="hint-content">
+                            <strong>Kernel Configuration:</strong><br>
+                            Copy current config: <code>cp /boot/config-$(uname -r) .config</code><br>
+                            Menu config: <code>make menuconfig</code><br>
+                            Disable unnecessary: Filesystems, Network protocols, Device drivers you don't need<br>
+                            Enable low-latency: Processor type → Timer frequency → 1000 HZ<br>
+                            Preemption Model → Low-Latency Desktop<br>
+                            Save and exit
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-17-hint-3', this)">💡 Hint 3: Compile Kernel</button>
+                        <div id="hard-17-hint-3" class="hint-content">
+                            <strong>Build Process:</strong><br>
+                            Clean: <code>make clean</code><br>
+                            Compile: <code>make -j$(nproc)</code> (uses all CPU cores)<br>
+                            This takes 30-60 minutes<br>
+                            Compile modules: <code>make modules</code><br>
+                            Install modules: <code>sudo make modules_install</code><br>
+                            Install kernel: <code>sudo make install</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-17-hint-4', this)">💡 Hint 4: Configure Bootloader</button>
+                        <div id="hard-17-hint-4" class="hint-content">
+                            <strong>Update GRUB:</strong><br>
+                            Update bootloader: <code>sudo update-grub</code><br>
+                            Verify new kernel listed: <code>grep menuentry /boot/grub/grub.cfg</code><br>
+                            Reboot: <code>sudo reboot</code><br>
+                            Check kernel: <code>uname -r</code><br>
+                            If issues, select old kernel from GRUB menu<br>
+                            Remove old kernels: <code>sudo apt autoremove</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-hard-17" onchange="updateProgress('linux')">
+                        <label for="linux-hard-17">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 18 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Advanced Performance Analysis with BPF/eBPF</h3>
+                        <div class="exercise-number">18</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Your application has mysterious latency spikes. Use BPF (Berkeley Packet Filter) tools to trace system calls, analyze I/O patterns, and identify performance bottlenecks at the kernel level.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Install BCC (BPF Compiler Collection) tools</li>
+                                <li>Trace application syscalls and latency</li>
+                                <li>Analyze disk I/O at block level</li>
+                                <li>Monitor network packet processing</li>
+                                <li>Create custom BPF script for specific analysis</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">bpf</span>
+                            <span class="tag">ebpf</span>
+                            <span class="tag">performance</span>
+                            <span class="tag">tracing</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('hard-18-hint-1', this)">💡 Hint 1: Install BCC Tools</button>
+                        <div id="hard-18-hint-1" class="hint-content">
+                            <strong>Setup BPF Tools:</strong><br>
+                            Install BCC: <code>sudo apt install bpfcc-tools linux-headers-$(uname -r)</code><br>
+                            Verify: <code>ls /usr/share/bcc/tools/</code><br>
+                            Test: <code>sudo /usr/share/bcc/tools/execsnoop</code><br>
+                            Check kernel support: <code>grep CONFIG_BPF /boot/config-$(uname -r)</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-18-hint-2', this)">💡 Hint 2: Syscall Tracing</button>
+                        <div id="hard-18-hint-2" class="hint-content">
+                            <strong>System Call Analysis:</strong><br>
+                            Trace specific process: <code>sudo /usr/share/bcc/tools/trace 'p:do_sys_open "%s", arg2'</code><br>
+                            Syscall counts: <code>sudo /usr/share/bcc/tools/syscount -p [PID]</code><br>
+                            Latency histogram: <code>sudo /usr/share/bcc/tools/funclatency do_sys_open</code><br>
+                            TCP connections: <code>sudo /usr/share/bcc/tools/tcpconnect</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-18-hint-3', this)">💡 Hint 3: I/O Performance</button>
+                        <div id="hard-18-hint-3" class="hint-content">
+                            <strong>Disk I/O Tracing:</strong><br>
+                            Block I/O latency: <code>sudo /usr/share/bcc/tools/biolatency</code><br>
+                            I/O by process: <code>sudo /usr/share/bcc/tools/biosnoop</code><br>
+                            File operations: <code>sudo /usr/share/bcc/tools/filetop</code><br>
+                            VFS stats: <code>sudo /usr/share/bcc/tools/vfsstat</code><br>
+                            Slow I/O: <code>sudo /usr/share/bcc/tools/biolatency -m</code> (milliseconds)
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-18-hint-4', this)">💡 Hint 4: Custom BPF Script</button>
+                        <div id="hard-18-hint-4" class="hint-content">
+                            <strong>Write Custom Tracer:</strong><br>
+                            Create trace.py using Python BCC:<br>
+                            <code>from bcc import BPF<br>
+                            prog = """<br>
+                            int trace_connect(struct pt_regs *ctx) {<br>
+                            &nbsp;&nbsp;bpf_trace_printk("Connection attempt\\n");<br>
+                            &nbsp;&nbsp;return 0;<br>
+                            }<br>
+                            """<br>
+                            b = BPF(text=prog)<br>
+                            b.attach_kprobe(event="tcp_v4_connect", fn_name="trace_connect")<br>
+                            b.trace_print()</code><br>
+                            Run: <code>sudo python3 trace.py</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-hard-18" onchange="updateProgress('linux')">
+                        <label for="linux-hard-18">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 19 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Custom initramfs for Encrypted Root</h3>
+                        <div class="exercise-number">19</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Implement full disk encryption with custom initramfs that supports unlocking via network (dropbear SSH) or USB key file, ensuring security while maintaining remote accessibility.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Encrypt root partition with LUKS</li>
+                                <li>Configure dropbear in initramfs for remote unlock</li>
+                                <li>Add USB key file as alternative unlock method</li>
+                                <li>Secure initramfs with custom kernel parameters</li>
+                                <li>Test boot process and recovery</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">luks</span>
+                            <span class="tag">encryption</span>
+                            <span class="tag">initramfs</span>
+                            <span class="tag">dropbear</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('hard-19-hint-1', this)">💡 Hint 1: LUKS Encryption</button>
+                        <div id="hard-19-hint-1" class="hint-content">
+                            <strong>Encrypt Partition:</strong><br>
+                            WARNING: Backup data first!<br>
+                            Setup LUKS: <code>sudo cryptsetup luksFormat /dev/sda2</code><br>
+                            Open: <code>sudo cryptsetup luksOpen /dev/sda2 crypt_root</code><br>
+                            Create filesystem: <code>sudo mkfs.ext4 /dev/mapper/crypt_root</code><br>
+                            Update /etc/crypttab: <code>crypt_root /dev/sda2 none luks</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-19-hint-2', this)">💡 Hint 2: Dropbear Setup</button>
+                        <div id="hard-19-hint-2" class="hint-content">
+                            <strong>Remote Unlock:</strong><br>
+                            Install: <code>sudo apt install dropbear-initramfs</code><br>
+                            Configure IP in /etc/initramfs-tools/initramfs.conf:<br>
+                            <code>IP=192.168.1.100::192.168.1.1:255.255.255.0:myserver</code><br>
+                            Add SSH key: <code>sudo cp ~/.ssh/id_rsa.pub /etc/dropbear-initramfs/authorized_keys</code><br>
+                            Update: <code>sudo update-initramfs -u</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-19-hint-3', this)">💡 Hint 3: USB Key File</button>
+                        <div id="hard-19-hint-3" class="hint-content">
+                            <strong>Alternative Unlock:</strong><br>
+                            Generate key: <code>sudo dd if=/dev/urandom of=/root/keyfile bs=1024 count=4</code><br>
+                            Add to LUKS: <code>sudo cryptsetup luksAddKey /dev/sda2 /root/keyfile</code><br>
+                            Copy to USB: <code>sudo cp /root/keyfile /media/usb/</code><br>
+                            Update crypttab: <code>crypt_root /dev/sda2 /media/usb/keyfile luks</code><br>
+                            Secure key: <code>sudo chmod 000 /root/keyfile</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-19-hint-4', this)">💡 Hint 4: Test and Recovery</button>
+                        <div id="hard-19-hint-4" class="hint-content">
+                            <strong>Verify Setup:</strong><br>
+                            Update grub: <code>sudo update-grub</code><br>
+                            Rebuild initramfs: <code>sudo update-initramfs -u -k all</code><br>
+                            Remote unlock: SSH to initramfs, then <code>cryptroot-unlock</code><br>
+                            Recovery: Boot from USB, mount encrypted drive:<br>
+                            <code>sudo cryptsetup luksOpen /dev/sda2 rescue<br>
+                            sudo mount /dev/mapper/rescue /mnt<br>
+                            sudo chroot /mnt</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-hard-19" onchange="updateProgress('linux')">
+                        <label for="linux-hard-19">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 20 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Namespace Isolation and cgroups for Resource Control</h3>
+                        <div class="exercise-number">20</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Create lightweight containers from scratch using Linux namespaces and cgroups. Isolate processes with separate network, PID, mount, and user namespaces while limiting CPU and memory usage.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Create isolated environment with all namespaces</li>
+                                <li>Set up separate network stack with veth pair</li>
+                                <li>Limit CPU to 50% and memory to 512MB</li>
+                                <li>Create minimal root filesystem (chroot)</li>
+                                <li>Implement process accounting and monitoring</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">namespaces</span>
+                            <span class="tag">cgroups</span>
+                            <span class="tag">containers</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('hard-20-hint-1', this)">💡 Hint 1: Create Namespaces</button>
+                        <div id="hard-20-hint-1" class="hint-content">
+                            <strong>Namespace Isolation:</strong><br>
+                            Create all namespaces: <code>sudo unshare --fork --pid --net --mount --uts --ipc /bin/bash</code><br>
+                            • <code>--pid</code>: Separate process IDs<br>
+                            • <code>--net</code>: Separate network<br>
+                            • <code>--mount</code>: Separate mounts<br>
+                            • <code>--uts</code>: Separate hostname<br>
+                            Verify: <code>ps aux</code> (should show only current processes)
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-20-hint-2', this)">💡 Hint 2: Network Setup</button>
+                        <div id="hard-20-hint-2" class="hint-content">
+                            <strong>Virtual Network:</strong><br>
+                            Create veth pair: <code>sudo ip link add veth0 type veth peer name veth1</code><br>
+                            Get PID of namespace: <code>echo $$</code><br>
+                            Move veth1 to namespace: <code>sudo ip link set veth1 netns [PID]</code><br>
+                            In namespace: <code>ip addr add 10.0.0.2/24 dev veth1</code><br>
+                            <code>ip link set veth1 up</code><br>
+                            On host: Configure veth0 as bridge
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-20-hint-3', this)">💡 Hint 3: Cgroup Limits</button>
+                        <div id="hard-20-hint-3" class="hint-content">
+                            <strong>Resource Control:</strong><br>
+                            Create cgroup: <code>sudo cgcreate -g cpu,memory:mycontainer</code><br>
+                            CPU limit 50%: <code>sudo cgset -r cpu.cfs_quota_us=50000 mycontainer</code><br>
+                            <code>sudo cgset -r cpu.cfs_period_us=100000 mycontainer</code><br>
+                            Memory limit: <code>sudo cgset -r memory.limit_in_bytes=536870912 mycontainer</code> (512MB)<br>
+                            Run in cgroup: <code>sudo cgexec -g cpu,memory:mycontainer /bin/bash</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-20-hint-4', this)">💡 Hint 4: Minimal Root FS</button>
+                        <div id="hard-20-hint-4" class="hint-content">
+                            <strong>Chroot Environment:</strong><br>
+                            Create rootfs: <code>sudo debootstrap --variant=minbase jammy /tmp/rootfs</code><br>
+                            Or extract Alpine: <code>wget http://dl-cdn.alpinelinux.org/alpine/v3.18/releases/x86_64/alpine-minirootfs-3.18.0-x86_64.tar.gz</code><br>
+                            Mount proc: <code>sudo mount -t proc proc /tmp/rootfs/proc</code><br>
+                            Chroot: <code>sudo chroot /tmp/rootfs /bin/sh</code><br>
+                            Combine with namespaces: <code>sudo unshare --fork --pid --mount chroot /tmp/rootfs /bin/sh</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-hard-20" onchange="updateProgress('linux')">
+                        <label for="linux-hard-20">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 21 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">High-Performance NFS Server with Kerberos</h3>
+                        <div class="exercise-number">21</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Set up enterprise-grade NFS server with Kerberos authentication, NFSv4 ACLs, and performance tuning for high-throughput storage serving 100+ clients.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Configure NFSv4 with Kerberos (sec=krb5)</li>
+                                <li>Set up MIT Kerberos KDC and principals</li>
+                                <li>Implement NFSv4 ACLs for granular permissions</li>
+                                <li>Tune for 10Gb network performance</li>
+                                <li>Monitor performance and implement caching</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">nfs</span>
+                            <span class="tag">kerberos</span>
+                            <span class="tag">acl</span>
+                            <span class="tag">performance</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('hard-21-hint-1', this)">💡 Hint 1: Kerberos KDC Setup</button>
+                        <div id="hard-21-hint-1" class="hint-content">
+                            <strong>Kerberos Configuration:</strong><br>
+                            Install KDC: <code>sudo apt install krb5-kdc krb5-admin-server</code><br>
+                            Create realm: <code>sudo krb5_newrealm</code><br>
+                            Add principals:<br>
+                            <code>sudo kadmin.local<br>
+                            addprinc -randkey nfs/server.domain.com<br>
+                            ktadd -k /etc/krb5.keytab nfs/server.domain.com</code><br>
+                            Configure /etc/krb5.conf with realm details
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-21-hint-2', this)">💡 Hint 2: NFSv4 Server</button>
+                        <div id="hard-21-hint-2" class="hint-content">
+                            <strong>NFS Configuration:</strong><br>
+                            Install: <code>sudo apt install nfs-kernel-server</code><br>
+                            Edit /etc/exports:<br>
+                            <code>/export *(rw,sync,fsid=0,crossmnt,no_subtree_check,sec=krb5:krb5i:krb5p)</code><br>
+                            • <code>krb5</code>: Authentication only<br>
+                            • <code>krb5i</code>: + Integrity<br>
+                            • <code>krb5p</code>: + Privacy (encryption)<br>
+                            Export: <code>sudo exportfs -ra</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-21-hint-3', this)">💡 Hint 3: Performance Tuning</button>
+                        <div id="hard-21-hint-3" class="hint-content">
+                            <strong>High-Throughput Optimization:</strong><br>
+                            Edit /etc/default/nfs-kernel-server:<br>
+                            <code>RPCNFSDCOUNT=16</code> (increase threads)<br>
+                            Mount options: <code>rsize=1048576,wsize=1048576</code> (1MB blocks)<br>
+                            Kernel params in /etc/sysctl.conf:<br>
+                            <code>net.core.rmem_max = 134217728<br>
+                            net.core.wmem_max = 134217728<br>
+                            sunrpc.tcp_slot_table_entries = 128</code><br>
+                            Apply: <code>sudo sysctl -p</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-21-hint-4', this)">💡 Hint 4: NFSv4 ACLs</button>
+                        <div id="hard-21-hint-4" class="hint-content">
+                            <strong>Advanced Permissions:</strong><br>
+                            Enable ACLs in /etc/fstab:<br>
+                            <code>/dev/sdb1 /export ext4 defaults,acl 0 2</code><br>
+                            Set ACL: <code>nfs4_setfacl -a A::user@domain:rwaDxtTcCy /export/data</code><br>
+                            • <code>r</code>: read, <code>w</code>: write<br>
+                            • <code>a</code>: append, <code>d</code>: delete<br>
+                            • <code>x</code>: execute<br>
+                            View: <code>nfs4_getfacl /export/data</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-hard-21" onchange="updateProgress('linux')">
+                        <label for="linux-hard-21">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 22 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Real-Time Linux Kernel (PREEMPT_RT) Setup</h3>
+                        <div class="exercise-number">22</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Your industrial automation system requires deterministic latency under 100 microseconds. Patch and configure a real-time Linux kernel (PREEMPT_RT) with proper IRQ priorities and CPU isolation.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Apply PREEMPT_RT patch to kernel</li>
+                                <li>Configure CPU isolation and IRQ affinity</li>
+                                <li>Set real-time scheduling for critical processes</li>
+                                <li>Measure and verify latency < 100μs</li>
+                                <li>Disable power management and frequency scaling</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">real-time</span>
+                            <span class="tag">preempt_rt</span>
+                            <span class="tag">latency</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('hard-22-hint-1', this)">💡 Hint 1: Get RT Patch</button>
+                        <div id="hard-22-hint-1" class="hint-content">
+                            <strong>Download RT Kernel:</strong><br>
+                            Download matching kernel: <code>wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.tar.xz</code><br>
+                            Get RT patch: <code>wget https://cdn.kernel.org/pub/linux/kernel/projects/rt/6.1/patch-6.1-rt.patch.xz</code><br>
+                            Extract kernel: <code>tar -xf linux-6.1.tar.xz && cd linux-6.1</code><br>
+                            Apply patch: <code>xzcat ../patch-6.1-rt.patch.xz | patch -p1</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-22-hint-2', this)">💡 Hint 2: Configure RT Kernel</button>
+                        <div id="hard-22-hint-2" class="hint-content">
+                            <strong>RT Configuration:</strong><br>
+                            Configure: <code>make menuconfig</code><br>
+                            General setup → Preemption Model → Fully Preemptible Kernel (RT)<br>
+                            Processor type → Timer frequency → 1000 HZ<br>
+                            Power management → CPU Frequency scaling → Disable<br>
+                            Compile: <code>make -j$(nproc) && sudo make modules_install install</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-22-hint-3', this)">💡 Hint 3: CPU Isolation</button>
+                        <div id="hard-22-hint-3" class="hint-content">
+                            <strong>Isolate CPUs:</strong><br>
+                            Edit /etc/default/grub:<br>
+                            <code>GRUB_CMDLINE_LINUX="isolcpus=2,3 nohz_full=2,3 rcu_nocbs=2,3"</code><br>
+                            • Isolates CPU 2 and 3 for RT tasks<br>
+                            Update: <code>sudo update-grub</code><br>
+                            Set IRQ affinity: <code>echo 1 > /proc/irq/[IRQ]/smp_affinity_list</code><br>
+                            Pin to CPU 0 and 1
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-22-hint-4', this)">💡 Hint 4: Test Latency</button>
+                        <div id="hard-22-hint-4" class="hint-content">
+                            <strong>Measure RT Performance:</strong><br>
+                            Install: <code>sudo apt install rt-tests</code><br>
+                            Cyclictest: <code>sudo cyclictest -p 80 -t5 -n -m -l 100000</code><br>
+                            • <code>-p 80</code>: Priority 80<br>
+                            • <code>-t5</code>: 5 threads<br>
+                            • <code>-m</code>: Lock memory<br>
+                            Set RT priority: <code>chrt -f 80 ./my_app</code><br>
+                            Check policy: <code>chrt -p [PID]</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-hard-22" onchange="updateProgress('linux')">
+                        <label for="linux-hard-22">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 23 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Disaster Recovery with Bacula Backup System</h3>
+                        <div class="exercise-number">23</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Implement enterprise backup solution using Bacula for 50 servers. Configure full, differential, and incremental backups with encryption, deduplication, and automated restore testing.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Set up Bacula Director, Storage, and File daemons</li>
+                                <li>Weekly full, daily differential, hourly incremental</li>
+                                <li>Encryption for all backups</li>
+                                <li>Tape library integration (or disk-based)</li>
+                                <li>Automated monthly restore verification</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">bacula</span>
+                            <span class="tag">backup</span>
+                            <span class="tag">disaster-recovery</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('hard-23-hint-1', this)">💡 Hint 1: Install Bacula</button>
+                        <div id="hard-23-hint-1" class="hint-content">
+                            <strong>Bacula Components:</strong><br>
+                            Install all: <code>sudo apt install bacula-director-mysql bacula-storage bacula-client bacula-console</code><br>
+                            Setup database: <code>sudo /usr/share/bacula-director/make_mysql_tables</code><br>
+                            Create user: <code>sudo /usr/share/bacula-director/grant_mysql_privileges</code><br>
+                            Test: <code>bconsole</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-23-hint-2', this)">💡 Hint 2: Configure Jobs</button>
+                        <div id="hard-23-hint-2" class="hint-content">
+                            <strong>Backup Schedule:</strong><br>
+                            Edit /etc/bacula/bacula-dir.conf:<br>
+                            <code>Schedule {<br>
+                            &nbsp;&nbsp;Name = "WeeklyCycle"<br>
+                            &nbsp;&nbsp;Run = Full 1st sun at 23:05<br>
+                            &nbsp;&nbsp;Run = Differential 2nd-5th sun at 23:05<br>
+                            &nbsp;&nbsp;Run = Incremental mon-sat at 23:05<br>
+                            }<br>
+                            FileSet {<br>
+                            &nbsp;&nbsp;Name = "Full Set"<br>
+                            &nbsp;&nbsp;Include { File = /home; File = /etc }<br>
+                            &nbsp;&nbsp;Exclude { File = *.tmp }<br>
+                            }</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-23-hint-3', this)">💡 Hint 3: Encryption Setup</button>
+                        <div id="hard-23-hint-3" class="hint-content">
+                            <strong>PKI Encryption:</strong><br>
+                            Generate keys: <code>openssl genrsa -out master.key 2048</code><br>
+                            <code>openssl req -new -key master.key -x509 -out master.cert</code><br>
+                            In FileSet:<br>
+                            <code>FileSet {<br>
+                            &nbsp;&nbsp;Include {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;Options {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;signature = MD5<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compression = GZIP<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PKI Sign = Yes<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PKI Encrypt = Yes<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                            &nbsp;&nbsp;}<br>
+                            }</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-23-hint-4', this)">💡 Hint 4: Restore Testing</button>
+                        <div id="hard-23-hint-4" class="hint-content">
+                            <strong>Automated Verification:</strong><br>
+                            Create script /usr/local/bin/test-restore.sh:<br>
+                            <code>#!/bin/bash<br>
+                            bconsole <<EOF<br>
+                            restore client=client1-fd fileset="Full Set" where=/tmp/restore select all done<br>
+                            yes<br>
+                            EOF<br>
+                            diff -r /home /tmp/restore/home</code><br>
+                            Cron monthly: <code>0 2 1 * * /usr/local/bin/test-restore.sh | mail -s "Restore Test" admin@company.com</code>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-hard-23" onchange="updateProgress('linux')">
+                        <label for="linux-hard-23">Mark as completed</label>
+                    </div>
+                </div>
+
+                <!-- Exercise 24 -->
+                <div class="exercise">
+                    <div class="exercise-header">
+                        <h3 class="exercise-title">Zero-Downtime Kernel Patching with kpatch/kGraft</h3>
+                        <div class="exercise-number">24</div>
+                    </div>
+
+                    <div class="scenario">
+                        <h4>📋 Scenario</h4>
+                        <p>Your critical production system can't tolerate reboots. Implement live kernel patching using kpatch to apply security patches without downtime, including CVE fixes and custom patches.</p>
+
+                        <div class="requirements">
+                            <h5>Requirements:</h5>
+                            <ul>
+                                <li>Install and configure kpatch infrastructure</li>
+                                <li>Create custom live patch for kernel function</li>
+                                <li>Apply CVE security patch without reboot</li>
+                                <li>Monitor patch status and revert if needed</li>
+                                <li>Automate patch deployment across fleet</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="tag">kpatch</span>
+                            <span class="tag">live-patching</span>
+                            <span class="tag">zero-downtime</span>
+                        </div>
+                    </div>
+
+                    <div class="hint-section">
+                        <button class="hint-button" onclick="toggleHint('hard-24-hint-1', this)">💡 Hint 1: Install kpatch</button>
+                        <div id="hard-24-hint-1" class="hint-content">
+                            <strong>Setup Live Patching:</strong><br>
+                            Install dependencies: <code>sudo apt install kpatch kpatch-build</code><br>
+                            Or build from source:<br>
+                            <code>git clone https://github.com/dynup/kpatch.git<br>
+                            cd kpatch && make && sudo make install</code><br>
+                            Verify: <code>kpatch --version</code><br>
+                            Check module loaded: <code>lsmod | grep kpatch</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-24-hint-2', this)">💡 Hint 2: Create Patch</button>
+                        <div id="hard-24-hint-2" class="hint-content">
+                            <strong>Build Live Patch:</strong><br>
+                            Get kernel source matching running kernel<br>
+                            Create patch file (example: fix.patch):<br>
+                            <code>diff -u original.c fixed.c > fix.patch</code><br>
+                            Build kpatch module: <code>kpatch-build fix.patch</code><br>
+                            This creates livepatch-*.ko module<br>
+                            Sign module if secure boot enabled
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-24-hint-3', this)">💡 Hint 3: Apply Patch</button>
+                        <div id="hard-24-hint-3" class="hint-content">
+                            <strong>Load Live Patch:</strong><br>
+                            Load patch: <code>sudo kpatch load livepatch-fix.ko</code><br>
+                            Check status: <code>sudo kpatch list</code><br>
+                            Verify function patched: <code>grep kpatch /proc/kallsyms</code><br>
+                            Make persistent: <code>sudo kpatch install livepatch-fix.ko</code><br>
+                            Unload if issue: <code>sudo kpatch unload livepatch-fix.ko</code>
+                        </div>
+
+                        <button class="hint-button" onclick="toggleHint('hard-24-hint-4', this)">💡 Hint 4: Fleet Deployment</button>
+                        <div id="hard-24-hint-4" class="hint-content">
+                            <strong>Automated Patching:</strong><br>
+                            Create Ansible playbook:<br>
+                            <code>- name: Deploy kpatch<br>
+                            &nbsp;&nbsp;hosts: production<br>
+                            &nbsp;&nbsp;tasks:<br>
+                            &nbsp;&nbsp;- copy: src=livepatch.ko dest=/tmp/<br>
+                            &nbsp;&nbsp;- command: kpatch load /tmp/livepatch.ko<br>
+                            &nbsp;&nbsp;- command: kpatch install /tmp/livepatch.ko</code><br>
+                            Run: <code>ansible-playbook deploy-patch.yml</code><br>
+                            Monitor: Check /var/log/messages for kpatch events
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="linux-hard-24" onchange="updateProgress('linux')">
+                        <label for="linux-hard-24">Mark as completed</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Best Practices -->
+            <div class="best-practices">
+                <h4>🎯 Linux Best Practices</h4>
+                <ul>
+                    <li><strong>Security:</strong> Always use principle of least privilege, disable root SSH, use key-based auth</li>
+                    <li><strong>Updates:</strong> Keep system and packages updated, subscribe to security mailing lists</li>
+                    <li><strong>Backups:</strong> Implement 3-2-1 rule (3 copies, 2 media, 1 offsite), test restores monthly</li>
+                    <li><strong>Monitoring:</strong> Set up proper logging, monitoring, and alerting from day one</li>
+                    <li><strong>Documentation:</strong> Document all configurations, maintain runbooks for common tasks</li>
+                    <li><strong>Automation:</strong> Automate repetitive tasks, use configuration management tools</li>
+                    <li><strong>Resource Limits:</strong> Use ulimit, cgroups to prevent resource exhaustion</li>
+                    <li><strong>File Systems:</strong> Choose appropriate FS (ext4 general, XFS large files, Btrfs snapshots)</li>
+                    <li><strong>Kernel Parameters:</strong> Tune sysctl settings for your workload, document changes</li>
+                    <li><strong>Services:</strong> Disable unnecessary services, use systemd for service management</li>
+                    <li><strong>Network Security:</strong> Use firewall, configure SELinux/AppArmor, regular security audits</li>
+                    <li><strong>Performance:</strong> Profile before optimizing, use appropriate tools (perf, iotop, sar)</li>
+                </ul>
+            </div>
+
+            <!-- Common Pitfalls -->
+            <div class="pitfall">
+                <h4>⚠️ Common Linux Pitfalls</h4>
+                <ul>
+                    <li>Running everything as root instead of using sudo for specific tasks</li>
+                    <li>Not testing commands before running them in production (especially rm, dd)</li>
+                    <li>Forgetting to make firewall rules persistent across reboots</li>
+                    <li>Not monitoring disk space and inodes, leading to full filesystem</li>
+                    <li>Editing config files without backing them up first</li>
+                    <li>Not understanding the difference between hard and soft links</li>
+                    <li>Misconfiguring /etc/fstab causing boot failures</li>
+                    <li>Not using screen/tmux for long-running remote tasks</li>
+                    <li>Ignoring SELinux/AppArmor denials instead of fixing policies</li>
+                    <li>Not properly handling log rotation, filling up disk</li>
+                    <li>Copying files without preserving permissions and ownership</li>
+                    <li>Not validating syntax before restarting critical services</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleHint(hintId, button) {
+            const hint = document.getElementById(hintId);
+            hint.classList.toggle('visible');
+            
+            if (hint.classList.contains('visible')) {
+                button.classList.add('revealed');
+                button.textContent = button.textContent.replace('💡', '✅');
+            } else {
+                button.classList.remove('revealed');
+                button.textContent = button.textContent.replace('✅', '💡');
+            }
+        }
+
+        function updateProgress(type) {
+            const checkboxes = document.querySelectorAll(`input[type="checkbox"]`);
+            const total = checkboxes.length;
+            const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const percentage = (checked / total) * 100;
+            
+            const progressFill = document.getElementById(`${type}-progress`);
+            const progressText = document.getElementById(`${type}-progress-text`);
+            
+            progressFill.style.width = `${percentage}%`;
+            progressText.textContent = `${checked} of ${total} exercises completed`;
+            
+            // Save progress to localStorage
+            const progressData = Array.from(checkboxes).map(cb => ({
+                id: cb.id,
+                checked: cb.checked
+            }));
+            localStorage.setItem(`${type}-progress`, JSON.stringify(progressData));
+        }
+
+        // Load saved progress on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('linux-progress');
+            if (saved) {
+                const progressData = JSON.parse(saved);
+                progressData.forEach(item => {
+                    const checkbox = document.getElementById(item.id);
+                    if (checkbox) {
+                        checkbox.checked = item.checked;
+                    }
+                });
+                updateProgress('linux');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linux Practice — Setup Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0e0e12;
+      --surface: #16161d;
+      --surface2: #1e1e28;
+      --border: #2a2a38;
+      --easy: #3dffa0;
+      --easy-dim: #1a3d2b;
+      --medium: #ffb830;
+      --medium-dim: #3d2e0a;
+      --hard: #ff4f6d;
+      --hard-dim: #3d0f17;
+      --docker: #2496ed;
+      --docker-dim: #0a1f3d;
+      --code-bg: #0a0a0f;
+      --text: #e8e8f0;
+      --muted: #7878a0;
+      --accent: #a78bfa;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 60px 0;
+    }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0e0e12 60%);
+      border-bottom: 1px solid var(--border);
+      padding: 52px 40px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(167,139,250,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .hero h1 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      line-height: 1.15;
+      color: #fff;
+      margin-bottom: 14px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 560px;
+      line-height: 1.7;
+    }
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+    }
+    .hero-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .hero-badge.easy  { background: var(--easy-dim);   color: var(--easy);   border: 1px solid var(--easy); }
+    .hero-badge.medium{ background: var(--medium-dim); color: var(--medium); border: 1px solid var(--medium); }
+    .hero-badge.hard  { background: var(--hard-dim);   color: var(--hard);   border: 1px solid var(--hard); }
+    .hero-badge.docker{ background: var(--docker-dim); color: var(--docker); border: 1px solid var(--docker); }
+
+    /* LAYOUT */
+    .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+    /* QUICK ANSWER BOX */
+    .quick-answer {
+      background: linear-gradient(135deg, #1a1a30, #16161d);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin: 36px 0 8px;
+    }
+    .quick-answer h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .quick-answer p {
+      color: #b0b0cc;
+      line-height: 1.75;
+      font-size: 0.95rem;
+    }
+    .quick-answer p strong { color: var(--text); }
+
+    /* SECTION HEADERS */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 48px 0 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 7px 16px;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+    .section-badge.easy   { background: var(--easy-dim);   color: var(--easy); }
+    .section-badge.medium { background: var(--medium-dim); color: var(--medium); }
+    .section-badge.hard   { background: var(--hard-dim);   color: var(--hard); }
+    .section-title { font-size: 1.3rem; font-weight: 700; color: #fff; }
+    .section-sub   { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+
+    /* EXERCISE CARDS */
+    .exercise-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 24px;
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+    .exercise-card:hover { border-color: #3a3a50; }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .card-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      white-space: nowrap;
+      padding-top: 3px;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      flex: 1;
+    }
+    .card-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 4px;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    .status-none    { background: #1a2a1a; color: var(--easy);   border: 1px solid var(--easy-dim); }
+    .status-install { background: #2a200a; color: var(--medium); border: 1px solid var(--medium-dim); }
+    .status-docker  { background: #0a1a2a; color: var(--docker); border: 1px solid var(--docker-dim); }
+    .status-vm      { background: #2a1a1a; color: var(--hard);   border: 1px solid var(--hard-dim); }
+
+    .card-body { font-size: 0.9rem; color: #9898b8; line-height: 1.65; margin-bottom: 14px; }
+    .card-body strong { color: var(--text); }
+
+    /* CODE BLOCKS */
+    .cmd-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 14px 16px;
+      margin-top: 12px;
+    }
+    .cmd-block .cmd-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .cmd-block code {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: #68d391;
+      line-height: 1.9;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .cmd-block code .comment { color: var(--muted); }
+
+    /* DOCKER CALLOUT */
+    .docker-callout {
+      background: var(--docker-dim);
+      border: 1px solid rgba(36,150,237,0.3);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-top: 12px;
+    }
+    .docker-callout .dc-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--docker);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    .docker-callout code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: #90cdf4;
+      line-height: 1.9;
+      display: block;
+      white-space: pre-wrap;
+    }
+
+    /* WARNING BOX */
+    .warn-box {
+      background: #2a1a0a;
+      border: 1px solid rgba(255,184,48,0.3);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: #e0a050;
+      line-height: 1.65;
+    }
+    .warn-box strong { color: var(--medium); }
+
+    /* SUMMARY TABLE */
+    .summary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 48px;
+    }
+    .summary-header {
+      background: var(--surface2);
+      padding: 18px 24px;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #fff;
+      border-bottom: 1px solid var(--border);
+    }
+    .summary table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .summary th {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      padding: 12px 20px;
+      text-align: left;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+    .summary td {
+      padding: 11px 20px;
+      font-size: 0.88rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .summary tr:last-child td { border-bottom: none; }
+    .summary tr:hover td { background: rgba(255,255,255,0.02); }
+    .ex-num {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 3px 9px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+    .pill-easy   { background: var(--easy-dim);   color: var(--easy);   }
+    .pill-install{ background: var(--medium-dim); color: var(--medium); }
+    .pill-docker { background: var(--docker-dim); color: var(--docker); }
+    .pill-vm     { background: var(--hard-dim);   color: var(--hard);   }
+
+    /* FOOTER NOTE */
+    .footer-note {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 26px;
+      margin-top: 32px;
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+    .footer-note strong { color: var(--text); }
+    .footer-note a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="hero-label">// linux-practice-guide — pre-flight checklist</div>
+    <h1>What to set up<br><span>before each exercise</span></h1>
+    <p>A clear, step-by-step setup guide for all 24 exercises. Know exactly what to install — and what you can skip — before you start.</p>
+    <div class="hero-badges">
+      <span class="hero-badge easy">✓ No Setup — use as-is</span>
+      <span class="hero-badge medium">⚙ Quick Install — apt/yum</span>
+      <span class="hero-badge hard">🖥 VM Required — needs virtual disks</span>
+      <span class="hero-badge docker">🐋 Use Docker — safest option</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="quick-answer">
+    <h2>💡 Short Answer</h2>
+    <p>
+      <strong>Easy exercises (1–8):</strong> Mostly run on any Linux machine with zero setup. A couple need one quick <code>apt install</code>.<br>
+      <strong>Medium exercises (9–16):</strong> Some need a service installed (MySQL, Nginx, Node.js). Disk-based exercises (LVM, RAID) need a VM with extra virtual disks.<br>
+      <strong>Hard exercises (17–24):</strong> Use Docker or a dedicated VM — these involve complex services (containers, firewalls, backup daemons, live kernel patching).
+    </p>
+  </div>
+
+  <!-- ───────────── EASY ───────────── -->
+  <div class="section-header">
+    <span class="section-badge easy">EASY</span>
+    <div>
+      <div class="section-title">Exercises 1 – 8: Fundamentals</div>
+      <div class="section-sub">Most require zero setup. Just open a terminal.</div>
+    </div>
+  </div>
+
+  <!-- Ex 1 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 01</span>
+      <span class="card-title">User Management for New Team Members</span>
+      <span class="card-status status-none">No Setup</span>
+    </div>
+    <div class="card-body">
+      All commands (<code>useradd</code>, <code>passwd</code>, <code>groupadd</code>) are built into every Linux system. <strong>Just open a terminal and start.</strong>
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Verify your system has these tools</div>
+      <code>which useradd groupadd passwd chage  <span class="comment"># all should return paths</span></code>
+    </div>
+  </div>
+
+  <!-- Ex 2 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 02</span>
+      <span class="card-title">File Permission Fix for Web Server</span>
+      <span class="card-status status-none">No Setup</span>
+    </div>
+    <div class="card-body">
+      Uses <code>chmod</code>, <code>chown</code>, <code>find</code> — all built-in. Create a practice folder to simulate the web directory safely.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Create a safe practice directory</div>
+      <code>sudo mkdir -p /var/www/myapp/logs
+sudo groupadd developers 2>/dev/null
+sudo useradd -r www-data 2>/dev/null  <span class="comment"># usually already exists</span></code>
+    </div>
+  </div>
+
+  <!-- Ex 3 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 03</span>
+      <span class="card-title">Disk Space Cleanup Investigation</span>
+      <span class="card-status status-none">No Setup</span>
+    </div>
+    <div class="card-body">
+      Uses <code>df</code>, <code>du</code>, <code>find</code>, <code>gzip</code> — all built-in. Run directly on your own system to practice finding real large files.
+    </div>
+  </div>
+
+  <!-- Ex 4 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 04</span>
+      <span class="card-title">Process Management for High CPU Usage</span>
+      <span class="card-status status-install">1 Install</span>
+    </div>
+    <div class="card-body">
+      <code>top</code>, <code>ps</code>, <code>kill</code> are built-in. Install <strong>htop</strong> for a friendlier experience (the hints mention it).
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install (optional but recommended)</div>
+      <code>sudo apt install htop lsof -y</code>
+    </div>
+  </div>
+
+  <!-- Ex 5 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 05</span>
+      <span class="card-title">Cron Job Setup for Automated Backups</span>
+      <span class="card-status status-install">Quick Install</span>
+    </div>
+    <div class="card-body">
+      Cron is built-in. You need <strong>MySQL</strong> (for mysqldump) and <strong>mailutils</strong> for email alerts. You can skip email for basic practice.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install MySQL + mail tools</div>
+      <code>sudo apt install mysql-server mailutils -y
+sudo systemctl start mysql
+sudo mkdir -p /backup/db</code>
+    </div>
+    <div class="warn-box">
+      <strong>Tip:</strong> If you only want to practice cron syntax and don't need actual DB backups, skip MySQL and just create a dummy script that echoes "Backup done" — the scheduling part is identical.
+    </div>
+  </div>
+
+  <!-- Ex 6 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 06</span>
+      <span class="card-title">Network Connectivity Troubleshooting</span>
+      <span class="card-status status-install">Quick Install</span>
+    </div>
+    <div class="card-body">
+      Install the network diagnostic tools. You can test against <strong>localhost</strong> or any public server instead of <code>db.company.com</code>.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install network tools</div>
+      <code>sudo apt install telnet net-tools iputils-ping -y
+<span class="comment"># ss and ping are usually pre-installed</span>
+<span class="comment"># Test against localhost: telnet localhost 3306</span></code>
+    </div>
+    <div class="docker-callout">
+      <div class="dc-label">🐋 Optional: Spin up a real target to test against</div>
+      <code>docker run -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=test --name db mysql:8
+<span class="comment"># Now test: telnet localhost 3306</span></code>
+    </div>
+  </div>
+
+  <!-- Ex 7 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 07</span>
+      <span class="card-title">SSH Key-Based Authentication Setup</span>
+      <span class="card-status status-install">Quick Install</span>
+    </div>
+    <div class="card-body">
+      You need an SSH server to connect to. The easiest approach: install OpenSSH server on your own machine and SSH into <strong>localhost</strong>.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install SSH server (if not already installed)</div>
+      <code>sudo apt install openssh-server -y
+sudo systemctl enable --now ssh
+<span class="comment"># Now you can SSH to: ssh your-username@localhost</span></code>
+    </div>
+  </div>
+
+  <!-- Ex 8 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 08</span>
+      <span class="card-title">System Resource Monitoring Setup</span>
+      <span class="card-status status-install">Quick Install</span>
+    </div>
+    <div class="card-body">
+      <code>vmstat</code> and <code>iostat</code> need <strong>sysstat</strong>. Network monitoring needs <strong>iftop</strong> and <strong>nethogs</strong>.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install monitoring tools</div>
+      <code>sudo apt install sysstat iftop nethogs -y
+sudo systemctl enable --now sysstat
+<span class="comment"># Verify: sar -u  (should show CPU data after a few minutes)</span></code>
+    </div>
+  </div>
+
+  <!-- ───────────── MEDIUM ───────────── -->
+  <div class="section-header">
+    <span class="section-badge medium">MEDIUM</span>
+    <div>
+      <div class="section-title">Exercises 9 – 16: System Administration</div>
+      <div class="section-sub">Some need apt installs. Disk exercises (LVM, RAID) need a VM with extra virtual disks.</div>
+    </div>
+  </div>
+
+  <!-- Ex 9 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 09</span>
+      <span class="card-title">LVM Setup for Dynamic Storage</span>
+      <span class="card-status status-vm">VM + Virtual Disks</span>
+    </div>
+    <div class="card-body">
+      You need <strong>3 extra virtual disks</strong> (sdb, sdc, sdd). This only works in a VM where you can add disks. Use VirtualBox or VMware and add 3 x 10GB disks to your Linux VM.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">After adding virtual disks in your VM settings</div>
+      <code>sudo apt install lvm2 -y
+lsblk  <span class="comment"># confirm /dev/sdb, sdc, sdd appear</span></code>
+    </div>
+    <div class="warn-box">
+      <strong>VirtualBox setup:</strong> Machine → Settings → Storage → Add Hard Disk → Create 3 new VDI disks (10GB each). Reboot the VM. They'll appear as /dev/sdb, /dev/sdc, /dev/sdd.
+    </div>
+  </div>
+
+  <!-- Ex 10 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 10</span>
+      <span class="card-title">Systemd Service for Custom Application</span>
+      <span class="card-status status-install">Quick Install</span>
+    </div>
+    <div class="card-body">
+      Needs <strong>Node.js</strong> to create a simple app to manage as a service. Systemd itself is already on your system.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install Node.js and create a minimal test app</div>
+      <code>sudo apt install nodejs -y
+sudo useradd -r -s /bin/false appuser
+sudo mkdir -p /opt/myapp
+echo "const http=require('http'); http.createServer((_,r)=>{r.end('ok')}).listen(3000)" | sudo tee /opt/myapp/server.js
+sudo chown -R appuser:appuser /opt/myapp</code>
+    </div>
+  </div>
+
+  <!-- Ex 11 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 11</span>
+      <span class="card-title">Nginx Web Server Configuration</span>
+      <span class="card-status status-install">Quick Install</span>
+    </div>
+    <div class="card-body">
+      Install <strong>Nginx</strong>. Everything else (config files, virtual hosts) is part of the exercise itself.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install Nginx</div>
+      <code>sudo apt install nginx -y
+sudo systemctl enable --now nginx
+curl http://localhost  <span class="comment"># should return Nginx welcome page</span></code>
+    </div>
+  </div>
+
+  <!-- Ex 12 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 12</span>
+      <span class="card-title">Network Performance Tuning with sysctl</span>
+      <span class="card-status status-none">No Setup</span>
+    </div>
+    <div class="card-body">
+      Everything is kernel parameters edited via <code>/etc/sysctl.conf</code>. No software to install — just make sure you have sudo access.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Confirm you can read/write sysctl settings</div>
+      <code>sudo sysctl -a | head -5   <span class="comment"># should show kernel params</span>
+cat /proc/sys/vm/swappiness  <span class="comment"># should show a number</span></code>
+    </div>
+  </div>
+
+  <!-- Ex 13 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 13</span>
+      <span class="card-title">RAID Configuration for Data Redundancy</span>
+      <span class="card-status status-vm">VM + Virtual Disks</span>
+    </div>
+    <div class="card-body">
+      Needs <strong>4 extra virtual disks</strong> (sdb, sdc, sdd, sde). Same approach as LVM — add them in your VM settings.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">After adding 4 virtual disks in VM settings</div>
+      <code>sudo apt install mdadm -y
+lsblk  <span class="comment"># confirm 4 new disks appear</span></code>
+    </div>
+  </div>
+
+  <!-- Ex 14 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 14</span>
+      <span class="card-title">Log Rotation and Centralized Logging</span>
+      <span class="card-status status-install">Quick Install</span>
+    </div>
+    <div class="card-body">
+      <code>logrotate</code> is usually pre-installed. You need <strong>rsyslog</strong> for centralized logging and a second machine (or Docker container) as the log server.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install and verify</div>
+      <code>sudo apt install rsyslog -y
+sudo systemctl enable --now rsyslog
+which logrotate  <span class="comment"># should return /usr/sbin/logrotate</span></code>
+    </div>
+    <div class="docker-callout">
+      <div class="dc-label">🐋 Simulate a central log server with Docker</div>
+      <code>docker run -d -p 514:514/udp --name syslog-server \
+  -e SYSLOG_CONF="*.* /var/log/remote.log" rsyslog/syslog_appliance_alpine</code>
+    </div>
+  </div>
+
+  <!-- Ex 15 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 15</span>
+      <span class="card-title">Firewall Configuration with iptables/ufw</span>
+      <span class="card-status status-install">Quick Install</span>
+    </div>
+    <div class="card-body">
+      <code>iptables</code> is built-in. Install <strong>ufw</strong> for the simpler frontend. <strong>Practice on a VM — not on a remote server you can't access physically.</strong>
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install ufw</div>
+      <code>sudo apt install ufw -y
+sudo ufw status  <span class="comment"># should show: Status: inactive</span>
+<span class="comment"># Important: enable SSH rule BEFORE enabling ufw</span>
+sudo ufw allow ssh</code>
+    </div>
+    <div class="warn-box">
+      <strong>⚠ Warning:</strong> Always run <code>sudo ufw allow ssh</code> before <code>sudo ufw enable</code> or you will lock yourself out of a remote machine.
+    </div>
+  </div>
+
+  <!-- Ex 16 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 16</span>
+      <span class="card-title">MySQL / Database Administration</span>
+      <span class="card-status status-install">Quick Install</span>
+    </div>
+    <div class="card-body">
+      Install <strong>MySQL Server</strong>. The exercise covers performance tuning, user management, and query optimization.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install and secure MySQL</div>
+      <code>sudo apt install mysql-server -y
+sudo systemctl enable --now mysql
+sudo mysql_secure_installation  <span class="comment"># follow prompts</span>
+mysql -u root -p  <span class="comment"># verify login works</span></code>
+    </div>
+  </div>
+
+  <!-- ───────────── HARD ───────────── -->
+  <div class="section-header">
+    <span class="section-badge hard">HARD</span>
+    <div>
+      <div class="section-title">Exercises 17 – 24: Advanced Administration</div>
+      <div class="section-sub">Use Docker or a dedicated VM. These involve complex, system-level changes.</div>
+    </div>
+  </div>
+
+  <!-- Ex 17 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 17</span>
+      <span class="card-title">Docker Container Management</span>
+      <span class="card-status status-docker">Install Docker</span>
+    </div>
+    <div class="card-body">
+      This exercise IS Docker — install it and you're ready to go.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install Docker Engine (Ubuntu)</div>
+      <code>sudo apt install docker.io docker-compose -y
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER  <span class="comment"># run docker without sudo</span>
+newgrp docker
+docker run hello-world  <span class="comment"># confirm it works</span></code>
+    </div>
+  </div>
+
+  <!-- Ex 18 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 18</span>
+      <span class="card-title">SELinux / AppArmor Security Policies</span>
+      <span class="card-status status-install">Quick Install</span>
+    </div>
+    <div class="card-body">
+      Ubuntu uses <strong>AppArmor</strong> by default (already installed). Install the management tools to interact with it.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install AppArmor tools</div>
+      <code>sudo apt install apparmor-utils apparmor-profiles -y
+sudo aa-status  <span class="comment"># shows current AppArmor profiles</span>
+sudo systemctl enable --now apparmor</code>
+    </div>
+  </div>
+
+  <!-- Ex 19 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 19</span>
+      <span class="card-title">Nginx Load Balancer Setup</span>
+      <span class="card-status status-docker">Use Docker</span>
+    </div>
+    <div class="card-body">
+      Needs multiple backend servers. Docker makes this trivial — spin up 3 containers as backends.
+    </div>
+    <div class="docker-callout">
+      <div class="dc-label">🐋 Spin up 3 backend servers instantly</div>
+      <code>docker run -d -p 8081:80 --name backend1 nginx
+docker run -d -p 8082:80 --name backend2 nginx
+docker run -d -p 8083:80 --name backend3 nginx
+<span class="comment"># Then configure Nginx on your host to load-balance across :8081 :8082 :8083</span></code>
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install Nginx (if not already done in Ex 11)</div>
+      <code>sudo apt install nginx -y</code>
+    </div>
+  </div>
+
+  <!-- Ex 20 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 20</span>
+      <span class="card-title">Kubernetes (k8s) Basic Cluster Setup</span>
+      <span class="card-status status-docker">Use minikube</span>
+    </div>
+    <div class="card-body">
+      Use <strong>minikube</strong> — it runs a full single-node Kubernetes cluster locally without needing multiple VMs.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install kubectl + minikube</div>
+      <code>sudo apt install kubectl -y
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+minikube start --driver=docker
+kubectl get nodes  <span class="comment"># should show 1 node: Ready</span></code>
+    </div>
+  </div>
+
+  <!-- Ex 21 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 21</span>
+      <span class="card-title">Performance Profiling with perf/strace</span>
+      <span class="card-status status-install">Quick Install</span>
+    </div>
+    <div class="card-body">
+      Install Linux perf tools and strace. These work on your own system — profile any running process.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install profiling tools</div>
+      <code>sudo apt install linux-tools-common linux-tools-generic strace ltrace -y
+sudo perf stat ls  <span class="comment"># quick test — should output performance counters</span></code>
+    </div>
+  </div>
+
+  <!-- Ex 22 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 22</span>
+      <span class="card-title">Ansible Automation for Configuration Management</span>
+      <span class="card-status status-docker">Use Docker</span>
+    </div>
+    <div class="card-body">
+      Ansible needs target machines to configure. Use Docker containers as your "fleet" of servers.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Install Ansible</div>
+      <code>sudo apt install ansible -y
+ansible --version  <span class="comment"># confirm installation</span></code>
+    </div>
+    <div class="docker-callout">
+      <div class="dc-label">🐋 Create a fleet of target servers with Docker</div>
+      <code>docker run -d --name server1 -p 2221:22 rastasheep/ubuntu-sshd:18.04
+docker run -d --name server2 -p 2222:22 rastasheep/ubuntu-sshd:18.04
+docker run -d --name server3 -p 2223:22 rastasheep/ubuntu-sshd:18.04
+<span class="comment"># SSH password is: root</span>
+<span class="comment"># Use localhost:2221, :2222, :2223 as your inventory</span></code>
+    </div>
+  </div>
+
+  <!-- Ex 23 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 23</span>
+      <span class="card-title">Bacula Enterprise Backup System</span>
+      <span class="card-status status-docker">Use Docker</span>
+    </div>
+    <div class="card-body">
+      Bacula has multiple components (Director, Storage, File daemon). Docker Compose makes this manageable without complex manual setup.
+    </div>
+    <div class="docker-callout">
+      <div class="dc-label">🐋 Recommended: Docker Compose setup</div>
+      <code>sudo apt install bacula bacula-console -y
+<span class="comment"># OR use a pre-built Docker image:</span>
+docker run -d --name bacula \
+  -p 9101:9101 -p 9102:9102 -p 9103:9103 \
+  baculasystems/baculaweb</code>
+    </div>
+    <div class="warn-box">
+      <strong>Note:</strong> This is one of the most complex exercises. If you're new to backup systems, spend 30 minutes reading the Bacula documentation first before attempting setup.
+    </div>
+  </div>
+
+  <!-- Ex 24 -->
+  <div class="exercise-card">
+    <div class="card-top">
+      <span class="card-num">Ex 24</span>
+      <span class="card-title">Zero-Downtime Kernel Patching with kpatch</span>
+      <span class="card-status status-vm">Dedicated VM Only</span>
+    </div>
+    <div class="card-body">
+      <strong>This is the most complex exercise.</strong> kpatch requires kernel source code matching your exact running kernel. Do this in a throwaway VM only — never on a machine you care about.
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-label">Setup (inside a dedicated VM)</div>
+      <code>sudo apt install kpatch kpatch-build -y
+<span class="comment"># Or build from source (required for custom patches):</span>
+sudo apt install git make gcc libelf-dev -y
+git clone https://github.com/dynup/kpatch.git
+cd kpatch && make && sudo make install
+kpatch --version</code>
+    </div>
+    <div class="warn-box">
+      <strong>⚠ Important:</strong> kpatch needs kernel headers matching your exact kernel version. Run <code>uname -r</code> and install <code>linux-headers-$(uname -r)</code>. If versions don't match, kpatch-build will fail. Use a fresh Ubuntu VM where you control the kernel version.
+    </div>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <div class="summary">
+    <div class="summary-header">📋 Quick Reference — All 24 Exercises at a Glance</div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Exercise</th>
+          <th>Setup Needed</th>
+          <th>Install Command</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="ex-num">01</td><td>User Management</td><td><span class="pill pill-easy">None</span></td><td>—</td></tr>
+        <tr><td class="ex-num">02</td><td>File Permissions</td><td><span class="pill pill-easy">None</span></td><td>—</td></tr>
+        <tr><td class="ex-num">03</td><td>Disk Cleanup</td><td><span class="pill pill-easy">None</span></td><td>—</td></tr>
+        <tr><td class="ex-num">04</td><td>Process Management</td><td><span class="pill pill-install">apt install</span></td><td><code>apt install htop lsof</code></td></tr>
+        <tr><td class="ex-num">05</td><td>Cron Jobs</td><td><span class="pill pill-install">apt install</span></td><td><code>apt install mysql-server mailutils</code></td></tr>
+        <tr><td class="ex-num">06</td><td>Network Troubleshooting</td><td><span class="pill pill-install">apt install</span></td><td><code>apt install telnet net-tools</code></td></tr>
+        <tr><td class="ex-num">07</td><td>SSH Setup</td><td><span class="pill pill-install">apt install</span></td><td><code>apt install openssh-server</code></td></tr>
+        <tr><td class="ex-num">08</td><td>System Monitoring</td><td><span class="pill pill-install">apt install</span></td><td><code>apt install sysstat iftop nethogs</code></td></tr>
+        <tr><td class="ex-num">09</td><td>LVM Storage</td><td><span class="pill pill-vm">VM + 3 disks</span></td><td><code>apt install lvm2</code></td></tr>
+        <tr><td class="ex-num">10</td><td>Systemd Service</td><td><span class="pill pill-install">apt install</span></td><td><code>apt install nodejs</code></td></tr>
+        <tr><td class="ex-num">11</td><td>Nginx Config</td><td><span class="pill pill-install">apt install</span></td><td><code>apt install nginx</code></td></tr>
+        <tr><td class="ex-num">12</td><td>Network Tuning (sysctl)</td><td><span class="pill pill-easy">None</span></td><td>—</td></tr>
+        <tr><td class="ex-num">13</td><td>RAID Setup</td><td><span class="pill pill-vm">VM + 4 disks</span></td><td><code>apt install mdadm</code></td></tr>
+        <tr><td class="ex-num">14</td><td>Log Rotation</td><td><span class="pill pill-install">apt install</span></td><td><code>apt install rsyslog</code></td></tr>
+        <tr><td class="ex-num">15</td><td>Firewall (iptables/ufw)</td><td><span class="pill pill-install">apt install</span></td><td><code>apt install ufw</code></td></tr>
+        <tr><td class="ex-num">16</td><td>MySQL Administration</td><td><span class="pill pill-install">apt install</span></td><td><code>apt install mysql-server</code></td></tr>
+        <tr><td class="ex-num">17</td><td>Docker Management</td><td><span class="pill pill-docker">Docker</span></td><td><code>apt install docker.io</code></td></tr>
+        <tr><td class="ex-num">18</td><td>AppArmor / SELinux</td><td><span class="pill pill-install">apt install</span></td><td><code>apt install apparmor-utils</code></td></tr>
+        <tr><td class="ex-num">19</td><td>Nginx Load Balancer</td><td><span class="pill pill-docker">Docker</span></td><td><code>apt install nginx + docker</code></td></tr>
+        <tr><td class="ex-num">20</td><td>Kubernetes</td><td><span class="pill pill-docker">minikube</span></td><td><code>apt install kubectl + minikube</code></td></tr>
+        <tr><td class="ex-num">21</td><td>Performance Profiling</td><td><span class="pill pill-install">apt install</span></td><td><code>apt install linux-tools-generic strace</code></td></tr>
+        <tr><td class="ex-num">22</td><td>Ansible Automation</td><td><span class="pill pill-docker">Docker</span></td><td><code>apt install ansible + docker</code></td></tr>
+        <tr><td class="ex-num">23</td><td>Bacula Backup</td><td><span class="pill pill-docker">Docker</span></td><td><code>apt install bacula or docker</code></td></tr>
+        <tr><td class="ex-num">24</td><td>kpatch Live Patching</td><td><span class="pill pill-vm">Dedicated VM</span></td><td><code>apt install kpatch-build</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer-note">
+    <strong>Recommended environment:</strong> Ubuntu 22.04 LTS (on a VM like VirtualBox, a WSL2 instance, or a free Oracle Cloud VM). All <code>apt install</code> commands above are for Ubuntu/Debian. For RHEL/CentOS, replace <code>apt install</code> with <code>dnf install</code> and package names may differ slightly.<br><br>
+    <strong>Don't have a VM yet?</strong> The fastest free option: <a href="https://www.oracle.com/cloud/free/" target="_blank">Oracle Cloud Free Tier</a> gives you a permanent Ubuntu VM in under 5 minutes — no credit card required.
+  </div>
+
+</div>
+</body>
+</html>
